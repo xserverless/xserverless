@@ -2,8 +2,6 @@
 
 📫 [minghua@xserverless.cloud](mailto:minghua@xserverless.cloud?subject=说说看你的IDEA)
 
-
-
 <!--
 **xserverless/xserverless** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 

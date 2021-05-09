@@ -4,21 +4,38 @@ import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandList;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.TypePath;
 
 public interface MethodCommand extends Command {
+    void write(MethodVisitor visitor);
+
     @Data
     @AllArgsConstructor
     class Parameter implements MethodCommand {
         String name;
         int access;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitParameter(name, access);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class AnnotationDefault implements MethodCommand {
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitAnnotationDefault();
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
@@ -27,6 +44,14 @@ public interface MethodCommand extends Command {
         String descriptor;
         boolean visible;
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptor, visible);
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
@@ -37,6 +62,14 @@ public interface MethodCommand extends Command {
         String descriptor;
         boolean visible;
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
@@ -44,6 +77,11 @@ public interface MethodCommand extends Command {
     class AnnotableParameterCount implements MethodCommand {
         int parameterCount;
         boolean visible;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitAnnotableParameterCount(parameterCount, visible);
+        }
     }
 
     @Data
@@ -53,17 +91,34 @@ public interface MethodCommand extends Command {
         String descriptor;
         boolean visible;
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitParameterAnnotation(parameter, descriptor, visible);
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
     @AllArgsConstructor
     class Attribute implements MethodCommand {
         org.objectweb.asm.Attribute attribute;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitAttribute(attribute);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class Code implements MethodCommand {
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitCode();
+        }
     }
 
     @Data
@@ -74,12 +129,22 @@ public interface MethodCommand extends Command {
         Object[] local;
         int numStack;
         Object[] stack;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitFrame(type, numLocal, local, numStack, stack);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class Insn implements MethodCommand {
         int opcode;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitInsn(opcode);
+        }
     }
 
     @Data
@@ -87,6 +152,11 @@ public interface MethodCommand extends Command {
     class IntInsn implements MethodCommand {
         int opcode;
         int operand;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitIntInsn(opcode, operand);
+        }
     }
 
     @Data
@@ -94,6 +164,11 @@ public interface MethodCommand extends Command {
     class VarInsn implements MethodCommand {
         int opcode;
         int var;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitVarInsn(opcode, var);
+        }
     }
 
     @Data
@@ -101,6 +176,11 @@ public interface MethodCommand extends Command {
     class TypeInsn implements MethodCommand {
         int opcode;
         String type;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitTypeInsn(opcode, type);
+        }
     }
 
     @Data
@@ -110,6 +190,11 @@ public interface MethodCommand extends Command {
         String owner;
         String name;
         String descriptor;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitFieldInsn(opcode, owner, name, descriptor);
+        }
     }
 
     @Data
@@ -120,6 +205,11 @@ public interface MethodCommand extends Command {
         String name;
         String descriptor;
         boolean isInterface;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        }
     }
 
     @Data
@@ -129,6 +219,11 @@ public interface MethodCommand extends Command {
         String descriptor;
         Handle bootstrapMethodHandle;
         Object[] bootstrapMethodArguments;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+        }
     }
 
     @Data
@@ -136,18 +231,33 @@ public interface MethodCommand extends Command {
     class JumpInsn implements MethodCommand {
         int opcode;
         org.objectweb.asm.Label label;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitJumpInsn(opcode, label);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class Label implements MethodCommand {
         org.objectweb.asm.Label label;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitLabel(label);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class LdcInsn implements MethodCommand {
         Object value;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitLdcInsn(value);
+        }
     }
 
     @Data
@@ -155,6 +265,12 @@ public interface MethodCommand extends Command {
     class IincInsn implements MethodCommand {
         int var;
         int increment;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitIincInsn(var, increment);
+
+        }
     }
 
     @Data
@@ -164,6 +280,11 @@ public interface MethodCommand extends Command {
         int max;
         org.objectweb.asm.Label dflt;
         org.objectweb.asm.Label[] labels;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitTableSwitchInsn(min, max, dflt, labels);
+        }
     }
 
     @Data
@@ -172,6 +293,12 @@ public interface MethodCommand extends Command {
         org.objectweb.asm.Label dflt;
         int[] keys;
         org.objectweb.asm.Label[] labels;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitLookupSwitchInsn(dflt, keys, labels);
+
+        }
     }
 
     @Data
@@ -179,6 +306,12 @@ public interface MethodCommand extends Command {
     class MultiANewArrayInsn implements MethodCommand {
         String descriptor;
         int numDimensions;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitMultiANewArrayInsn(descriptor, numDimensions);
+
+        }
     }
 
     @Data
@@ -189,6 +322,15 @@ public interface MethodCommand extends Command {
         String descriptor;
         boolean visible;
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitInsnAnnotation(typeRef, typePath, descriptor, visible);
+
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
@@ -198,6 +340,11 @@ public interface MethodCommand extends Command {
         org.objectweb.asm.Label end;
         org.objectweb.asm.Label handler;
         String type;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitTryCatchBlock(start, end, handler, type);
+        }
     }
 
     @Data
@@ -208,6 +355,15 @@ public interface MethodCommand extends Command {
         String descriptor;
         boolean visible;
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitTryCatchAnnotation(typeRef, typePath, descriptor, visible);
+
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
@@ -219,6 +375,11 @@ public interface MethodCommand extends Command {
         org.objectweb.asm.Label start;
         org.objectweb.asm.Label end;
         int index;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitLocalVariable(name, descriptor, signature, start, end, index);
+        }
     }
 
     @Data
@@ -232,6 +393,15 @@ public interface MethodCommand extends Command {
         String descriptor;
         boolean visible;
         CommandList<AnnotationCommand> annotation;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            AnnotationVisitor annotationVisitor = visitor.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, descriptor, visible);
+
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.write(annotationVisitor);
+            }
+        }
     }
 
     @Data
@@ -239,6 +409,11 @@ public interface MethodCommand extends Command {
     class LineNumber implements MethodCommand {
         int line;
         org.objectweb.asm.Label start;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitLineNumber(line, start);
+        }
     }
 
     @Data
@@ -246,11 +421,19 @@ public interface MethodCommand extends Command {
     class Maxs implements MethodCommand {
         int maxStack;
         int maxLocals;
+
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitMaxs(maxStack, maxLocals);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class End implements MethodCommand {
+        @Override
+        public void write(MethodVisitor visitor) {
+            visitor.visitEnd();
+        }
     }
-
 }

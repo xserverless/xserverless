@@ -3,18 +3,31 @@ package io.xserverless.function.command.commands;
 import io.xserverless.function.command.Command;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.objectweb.asm.ModuleVisitor;
 
 public interface ModuleCommand extends Command {
+    void write(ModuleVisitor visitor);
+
     @Data
     @AllArgsConstructor
     class MainClass implements ModuleCommand {
         String mainClass;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitMainClass(mainClass);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class Package implements ModuleCommand {
         String packaze;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitPackage(packaze);
+        }
     }
 
     @Data
@@ -23,6 +36,11 @@ public interface ModuleCommand extends Command {
         String module;
         int access;
         String version;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitRequire(module, access, version);
+        }
     }
 
     @Data
@@ -31,6 +49,11 @@ public interface ModuleCommand extends Command {
         String packaze;
         int access;
         String[] modules;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitExport(packaze, access, modules);
+        }
     }
 
     @Data
@@ -39,12 +62,22 @@ public interface ModuleCommand extends Command {
         String packaze;
         int access;
         String[] modules;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitOpen(packaze, access, modules);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class Use implements ModuleCommand {
         String service;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitUse(service);
+        }
     }
 
     @Data
@@ -52,10 +85,20 @@ public interface ModuleCommand extends Command {
     class Provide implements ModuleCommand {
         String service;
         String[] providers;
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitProvide(service, providers);
+        }
     }
 
     @Data
     @AllArgsConstructor
     class End implements ModuleCommand {
+
+        @Override
+        public void write(ModuleVisitor visitor) {
+            visitor.visitEnd();
+        }
     }
 }

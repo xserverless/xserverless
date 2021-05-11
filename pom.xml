@@ -21,6 +21,7 @@
   </properties>
 
   <modules>
+    <module>samples</module>
     <module>function</module>
   </modules>
 

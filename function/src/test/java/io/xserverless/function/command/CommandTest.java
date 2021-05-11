@@ -1,15 +1,13 @@
 package io.xserverless.function.command;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
-import io.xserverless.function.AsmTest;
 import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
-import io.xserverless.function.command.sample.SampleClass;
 import io.xserverless.function.command.writer.ClassCommandWriter;
+import io.xserverless.samples.fibonacci.Fibonacci;
 import org.junit.Test;
 
 import static org.objectweb.asm.Opcodes.ASM7;
@@ -17,7 +15,7 @@ import static org.objectweb.asm.Opcodes.ASM7;
 public class CommandTest {
     @Test
     public void readClass() {
-        try (InputStream inputStream = AsmTest.class.getResourceAsStream("/" + ClassCommandReader.class.getName().replace('.', '/') + ".class")) {
+        try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
 
             CommandList<ClassCommand> commandList = ClassCommandReader.read(inputStream, ASM7);
@@ -32,25 +30,37 @@ public class CommandTest {
 
     @Test
     public void writeClass() {
-        File file = new File("./output/", SampleClass.class.getName().replace('.', '/') + ".class");
-        file.getParentFile().mkdirs();
-        System.out.println(file.getAbsolutePath());
-        try (InputStream inputStream = AsmTest.class.getResourceAsStream("/" + SampleClass.class.getName().replace('.', '/') + ".class");
-             FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+        try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
             CommandList<ClassCommand> commandList = ClassCommandReader.read(inputStream, ASM7);
 
+            for (ClassCommand classCommand : commandList.getCommands()) {
+                if (classCommand instanceof ClassCommand.Default) {
+                    ((ClassCommand.Default) classCommand).setName("io/xserverless/function/command/TestFibonacci");
+                }
+            }
+
             byte[] bytes = new ClassCommandWriter().write(commandList);
 
-            fileOutputStream.write(bytes);
+            Class<?> sampleClass = new TestClassLoader().defineClass("io.xserverless.function.command.TestFibonacci", bytes);
+            Method main = sampleClass.getMethod("print", int.class);
+            System.out.println(main);
+            main.invoke(null, 10);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static class TestClassLoader extends ClassLoader {
+        public Class<?> defineClass(String name, byte[] b)
+                throws ClassFormatError {
+            return defineClass(name, b, 0, b.length);
+        }
+    }
+
     private void printCommand(Command command) {
         Class<? extends Command> commandClass = command.getClass();
-        System.out.println(commandClass.getSimpleName());
+        System.out.println(commandClass.getName());
         for (Field declaredField : commandClass.getDeclaredFields()) {
             declaredField.setAccessible(true);
             try {

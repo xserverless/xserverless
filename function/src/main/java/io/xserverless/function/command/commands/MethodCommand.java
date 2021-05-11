@@ -2,6 +2,7 @@ package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandList;
+import io.xserverless.function.dto.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -11,6 +12,9 @@ import org.objectweb.asm.TypePath;
 
 public interface MethodCommand extends Command {
     void write(MethodVisitor visitor);
+
+    default void updateFunction(Function function) {
+    }
 
     @Data
     @AllArgsConstructor
@@ -36,6 +40,13 @@ public interface MethodCommand extends Command {
                 command.write(annotationVisitor);
             }
         }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
+            }
+        }
     }
 
     @Data
@@ -50,6 +61,13 @@ public interface MethodCommand extends Command {
             AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
             }
         }
     }
@@ -68,6 +86,13 @@ public interface MethodCommand extends Command {
             AnnotationVisitor annotationVisitor = visitor.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
             }
         }
     }
@@ -97,6 +122,13 @@ public interface MethodCommand extends Command {
             AnnotationVisitor annotationVisitor = visitor.visitParameterAnnotation(parameter, descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
             }
         }
     }
@@ -195,6 +227,11 @@ public interface MethodCommand extends Command {
         public void write(MethodVisitor visitor) {
             visitor.visitFieldInsn(opcode, owner, name, descriptor);
         }
+
+        @Override
+        public void updateFunction(Function function) {
+            function.getRelatedStates().add(owner + "." + name + "." + descriptor);
+        }
     }
 
     @Data
@@ -209,6 +246,11 @@ public interface MethodCommand extends Command {
         @Override
         public void write(MethodVisitor visitor) {
             visitor.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        }
+
+        @Override
+        public void updateFunction(Function function) {
+            function.getRelatedFunctions().add(owner + "." + name + "." + descriptor);
         }
     }
 
@@ -269,7 +311,6 @@ public interface MethodCommand extends Command {
         @Override
         public void write(MethodVisitor visitor) {
             visitor.visitIincInsn(var, increment);
-
         }
     }
 
@@ -331,6 +372,13 @@ public interface MethodCommand extends Command {
                 command.write(annotationVisitor);
             }
         }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
+            }
+        }
     }
 
     @Data
@@ -362,6 +410,13 @@ public interface MethodCommand extends Command {
 
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
             }
         }
     }
@@ -400,6 +455,13 @@ public interface MethodCommand extends Command {
 
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        @Override
+        public void updateFunction(Function function) {
+            for (AnnotationCommand annotationCommand : annotation.getCommands()) {
+                annotationCommand.updateFunction(function);
             }
         }
     }

@@ -2,6 +2,7 @@ package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandList;
+import io.xserverless.function.dto.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -9,6 +10,8 @@ import org.objectweb.asm.AnnotationVisitor;
 public interface AnnotationCommand extends Command {
     void write(AnnotationVisitor visitor);
 
+    default void updateFunction(Function function) {
+    }
     @Data
     @AllArgsConstructor
     class Default implements AnnotationCommand {

@@ -1,7 +1,10 @@
 package io.xserverless.function.command.commands;
 
+import java.util.HashSet;
+
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandList;
+import io.xserverless.function.dto.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -10,6 +13,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.RecordComponentVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
 
 public interface ClassCommand extends Command {
@@ -218,6 +222,32 @@ public interface ClassCommand extends Command {
             for (MethodCommand methodCommand : method.getCommands()) {
                 methodCommand.write(methodVisitor);
             }
+        }
+
+        public Function getFunction(String owner) {
+            Function function = Function.builder()
+                    .id(owner + "." + name + "." + descriptor)
+                    .owner(owner)
+                    .name(name)
+                    .descriptor(descriptor)
+                    .relatedFunctions(new HashSet<>())
+                    .relatedAnnotations(new HashSet<>())
+                    .relatedStates(new HashSet<>())
+                    .relatedTypes(new HashSet<>())
+                    .build();
+
+            Type returnType = Type.getReturnType(descriptor);
+            function.getRelatedTypes().add(returnType.getDescriptor());
+
+            Type[] argumentTypes = Type.getArgumentTypes(descriptor);
+            for (Type argumentType : argumentTypes) {
+                function.getRelatedTypes().add(argumentType.getDescriptor());
+            }
+
+            for (MethodCommand methodCommand : method.getCommands()) {
+                methodCommand.updateFunction(function);
+            }
+            return function;
         }
     }
 

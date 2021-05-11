@@ -2,8 +2,8 @@ package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandGroup;
-import io.xserverless.function.dto.Function;
-import io.xserverless.function.dto.State;
+import io.xserverless.function.dto.XFunction;
+import io.xserverless.function.dto.XGroup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -14,7 +14,7 @@ import org.objectweb.asm.TypePath;
 public interface MethodCommand extends Command {
     void write(MethodVisitor visitor);
 
-    default void updateFunction(Function function) {
+    default void updateFunction(XFunction function, XGroup group) {
     }
 
     @Data
@@ -43,7 +43,7 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -66,7 +66,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -91,7 +92,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -127,7 +129,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -230,8 +233,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
-            function.getRelatedStates().add(State.builder().owner(owner).name(name).descriptor(descriptor).build());
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetState(owner, name, descriptor));
         }
     }
 
@@ -250,8 +253,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
-            function.getRelatedFunctions().add(owner + "." + name + "." + descriptor);
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetFunction(owner, name, descriptor));
         }
     }
 
@@ -266,6 +269,11 @@ public interface MethodCommand extends Command {
         @Override
         public void write(MethodVisitor visitor) {
             visitor.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+        }
+
+        @Override
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetState(function.getOwner(), name, descriptor));
         }
     }
 
@@ -352,7 +360,11 @@ public interface MethodCommand extends Command {
         @Override
         public void write(MethodVisitor visitor) {
             visitor.visitMultiANewArrayInsn(descriptor, numDimensions);
+        }
 
+        @Override
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
         }
     }
 
@@ -375,7 +387,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -415,7 +428,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -435,6 +449,11 @@ public interface MethodCommand extends Command {
         @Override
         public void write(MethodVisitor visitor) {
             visitor.visitLocalVariable(name, descriptor, signature, start, end, index);
+        }
+
+        @Override
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
         }
     }
 
@@ -460,7 +479,8 @@ public interface MethodCommand extends Command {
         }
 
         @Override
-        public void updateFunction(Function function) {
+        public void updateFunction(XFunction function, XGroup group) {
+            group.addPair(function, group.createOrGetType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }

@@ -22,7 +22,7 @@
 
   <modules>
     <module>samples</module>
-    <module>function</module>
+    <module>XFunction</module>
   </modules>
 
   <dependencyManagement>

@@ -9,9 +9,9 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>function</artifactId>
+    <artifactId>XFunction</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>function</name>
+    <name>XFunction</name>
     <description>Convert the Java objects to functions</description>
     <properties>
     </properties>

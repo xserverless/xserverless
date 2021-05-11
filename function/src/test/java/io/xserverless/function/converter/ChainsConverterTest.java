@@ -1,16 +1,15 @@
 package io.xserverless.function.converter;
 
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
-import io.xserverless.function.dto.Function;
+import io.xserverless.function.dto.XFunction;
+import io.xserverless.function.dto.XGroup;
+import io.xserverless.function.dto.XObject;
 import io.xserverless.samples.chains.A;
 import io.xserverless.samples.chains.B;
 import io.xserverless.samples.chains.C;
@@ -22,38 +21,28 @@ import static org.objectweb.asm.Opcodes.ASM7;
 public class ChainsConverterTest {
     @Test
     public void testConverter() {
-        List<Function> functionsA = readFunctions(A.class);
-        List<Function> functionsB = readFunctions(B.class);
-        List<Function> functionsC = readFunctions(C.class);
-        List<Function> functionsD = readFunctions(D.class);
+        XGroup group = new XGroup();
+        readFunctions(A.class, group);
+        readFunctions(B.class, group);
+        readFunctions(C.class, group);
+        readFunctions(D.class, group);
 
-        Map<String, Function> functionMap = new HashMap<>();
-        for (Function function : functionsA) {
-            System.out.println(function);
-            functionMap.put(function.getId(), function);
-        }
-        for (Function function : functionsB) {
-            System.out.println(function);
-            functionMap.put(function.getId(), function);
-        }
-        for (Function function : functionsC) {
-            System.out.println(function);
-            functionMap.put(function.getId(), function);
-        }
-        for (Function function : functionsD) {
-            System.out.println(function);
-            functionMap.put(function.getId(), function);
-        }
+        group.iterator(obj -> {
+            if (obj instanceof XFunction) {
+                System.out.println(obj);
+            }
+        });
 
         System.out.println("----------- function chains --------------");
 
-        for (String start : functionMap.keySet()) {
-            System.out.println("--");
-            outputChains(functionMap, start, new HashSet<>());
-        }
+        group.iterator(obj -> {
+            if (obj instanceof XFunction) {
+                outputChains(group, ((XFunction) obj), new HashSet<>());
+            }
+        });
     }
 
-    private void outputChains(Map<String, Function> map, String start, Set<String> counted) {
+    private void outputChains(XGroup group, XFunction start, Set<XObject> counted) {
         if (counted.contains(start)) {
             return;
         }
@@ -62,25 +51,22 @@ public class ChainsConverterTest {
             System.out.print("\t");
         }
         System.out.print("|-\t");
-        System.out.println(start);
+        System.out.println(start.getOwner() + "." + start.getName() + start.getDescriptor());
 
         counted.add(start);
-
-        if (map.containsKey(start)) {
-            for (String relatedFunction : map.get(start).getRelatedFunctions()) {
-                outputChains(map, relatedFunction, counted);
+        for (XObject object : group.relatedReadOnly(start)) {
+            if (object instanceof XFunction) {
+                outputChains(group, (XFunction) object, counted);
             }
         }
-
         counted.remove(start);
     }
 
-    private List<Function> readFunctions(Class<?> c) {
+    private void readFunctions(Class<?> c, XGroup group) {
         try (InputStream inputStream = c.getResourceAsStream("/" + c.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
             CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
-            List<Function> functionList = new FunctionConverter().getFunctions(commandGroup);
-            return functionList;
+            new FunctionConverter().getFunctions(commandGroup, group);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -4,8 +4,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import io.xserverless.function.dto.Function;
-import io.xserverless.function.dto.State;
+import com.sun.org.apache.bcel.internal.generic.Type;
+import io.xserverless.function.dto.XFunction;
+import io.xserverless.function.dto.XState;
+import io.xserverless.function.dto.XType;
 
 
 public class CommandFilter {
@@ -22,29 +24,31 @@ public class CommandFilter {
             return true;
         }
 
-        public boolean state(String descriptor) {
+        @Override
+        public boolean state(String owner, String name, String descriptor) {
             return true;
         }
     };
 
-    public void allowType(String name) {
-        allowTypeSet.add(name);
+    public void allowType(XType type) {
+        Type t = Type.getType(type.getDescriptor());
+        allowTypeSet.add(t.toString());
     }
 
-    public void allowFunction(Function function) {
+    public void allowFunction(XFunction function) {
         String string = new StringJoiner(":", "[", "]").add(function.getOwner()).add(function.getName()).add(function.getDescriptor()).toString();
         allowFunctionSet.add(string);
-        allowTypeSet.add(function.getOwner());
+        allowTypeSet.add(function.getOwner().replace('/', '.'));
     }
 
-    public void allowState(State state) {
+    public void allowState(XState state) {
         String string = new StringJoiner(":", "[", "]").add(state.getOwner()).add(state.getName()).add(state.getDescriptor()).toString();
         allowStateSet.add(string);
-        allowTypeSet.add(state.getOwner());
+        allowTypeSet.add(state.getOwner().replace('/', '.'));
     }
 
     public boolean type(String name) {
-        return allowTypeSet.contains(name);
+        return allowTypeSet.contains(name.replace('/', '.'));
     }
 
     public boolean function(String owner, String name, String descriptor) {

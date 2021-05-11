@@ -1,11 +1,10 @@
 package io.xserverless.function.command.commands;
 
-import java.util.HashSet;
-
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.command.writer.CommandFilter;
-import io.xserverless.function.dto.Function;
+import io.xserverless.function.dto.XFunction;
+import io.xserverless.function.dto.XGroup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -229,28 +228,19 @@ public interface ClassCommand extends Command {
             }
         }
 
-        public Function getFunction(String owner) {
-            Function function = Function.builder()
-                    .id(owner + "." + name + "." + descriptor)
-                    .owner(owner)
-                    .name(name)
-                    .descriptor(descriptor)
-                    .relatedFunctions(new HashSet<>())
-                    .relatedAnnotations(new HashSet<>())
-                    .relatedStates(new HashSet<>())
-                    .relatedTypes(new HashSet<>())
-                    .build();
+        public XFunction getFunction(String owner, XGroup group) {
+            XFunction function = group.createOrGetFunction(owner, name, descriptor);
 
             Type returnType = Type.getReturnType(descriptor);
-            function.getRelatedTypes().add(returnType.getDescriptor());
+            group.addPair(function, group.createOrGetType(returnType.getDescriptor()));
 
             Type[] argumentTypes = Type.getArgumentTypes(descriptor);
             for (Type argumentType : argumentTypes) {
-                function.getRelatedTypes().add(argumentType.getDescriptor());
+                group.addPair(function, group.createOrGetType(argumentType.getDescriptor()));
             }
 
             for (MethodCommand methodCommand : method.getCommands()) {
-                methodCommand.updateFunction(function);
+                methodCommand.updateFunction(function, group);
             }
             return function;
         }

@@ -1,7 +1,7 @@
 package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
-import io.xserverless.function.command.CommandList;
+import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.dto.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +12,7 @@ public interface AnnotationCommand extends Command {
 
     default void updateFunction(Function function) {
     }
+
     @Data
     @AllArgsConstructor
     class Default implements AnnotationCommand {
@@ -43,7 +44,7 @@ public interface AnnotationCommand extends Command {
         private String name;
         private String descriptor;
 
-        private CommandList<AnnotationCommand> annotation;
+        private CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(AnnotationVisitor visitor) {
@@ -58,7 +59,7 @@ public interface AnnotationCommand extends Command {
     @AllArgsConstructor
     class Array implements AnnotationCommand {
         private String name;
-        private CommandList<AnnotationCommand> annotation;
+        private CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(AnnotationVisitor visitor) {

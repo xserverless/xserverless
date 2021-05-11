@@ -1,7 +1,7 @@
 package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
-import io.xserverless.function.command.CommandList;
+import io.xserverless.function.command.CommandGroup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -16,7 +16,7 @@ public interface FieldCommand extends Command {
     class Annotation implements FieldCommand {
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(FieldVisitor visitor) {
@@ -34,7 +34,7 @@ public interface FieldCommand extends Command {
         TypePath typePath;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(FieldVisitor visitor) {

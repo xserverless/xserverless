@@ -3,7 +3,8 @@ package io.xserverless.function.command.commands;
 import java.util.HashSet;
 
 import io.xserverless.function.command.Command;
-import io.xserverless.function.command.CommandList;
+import io.xserverless.function.command.CommandGroup;
+import io.xserverless.function.command.writer.CommandFilter;
 import io.xserverless.function.dto.Function;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ import org.objectweb.asm.TypePath;
 
 public interface ClassCommand extends Command {
 
-    void write(ClassWriter classWriter);
+    void write(ClassWriter classWriter, CommandFilter filter);
 
     @Data
     @AllArgsConstructor
@@ -31,7 +32,7 @@ public interface ClassCommand extends Command {
         String[] interfaces;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visit(version, access, name, signature, superName, interfaces);
         }
     }
@@ -43,7 +44,7 @@ public interface ClassCommand extends Command {
         String debug;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitSource(source, debug);
         }
     }
@@ -54,10 +55,10 @@ public interface ClassCommand extends Command {
         String name;
         int access;
         String version;
-        CommandList<ModuleCommand> module;
+        CommandGroup<ModuleCommand> module;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             ModuleVisitor moduleVisitor = classWriter.visitModule(name, access, version);
             for (ModuleCommand command : module.getCommands()) {
                 command.write(moduleVisitor);
@@ -71,7 +72,7 @@ public interface ClassCommand extends Command {
         String nestHost;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitNestHost(nestHost);
         }
     }
@@ -84,7 +85,7 @@ public interface ClassCommand extends Command {
         String descriptor;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitOuterClass(owner, name, descriptor);
         }
     }
@@ -94,10 +95,10 @@ public interface ClassCommand extends Command {
     class Annotation implements ClassCommand {
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             AnnotationVisitor annotationVisitor = classWriter.visitAnnotation(descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
@@ -112,10 +113,10 @@ public interface ClassCommand extends Command {
         TypePath typePath;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             AnnotationVisitor annotationVisitor = classWriter.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
@@ -129,7 +130,7 @@ public interface ClassCommand extends Command {
         org.objectweb.asm.Attribute attribute;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitAttribute(attribute);
         }
     }
@@ -140,7 +141,7 @@ public interface ClassCommand extends Command {
         String nestMember;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitNestMember(nestMember);
         }
     }
@@ -151,7 +152,7 @@ public interface ClassCommand extends Command {
         String permittedSubclass;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitPermittedSubclass(permittedSubclass);
         }
     }
@@ -165,7 +166,7 @@ public interface ClassCommand extends Command {
         int access;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitInnerClass(name, outerName, innerName, access);
         }
     }
@@ -176,10 +177,10 @@ public interface ClassCommand extends Command {
         String name;
         String descriptor;
         String signature;
-        CommandList<RecordComponentCommand> recordComponent;
+        CommandGroup<RecordComponentCommand> recordComponent;
 
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             RecordComponentVisitor recordComponentVisitor = classWriter.visitRecordComponent(name, descriptor, signature);
             for (RecordComponentCommand command : recordComponent.getCommands()) {
                 command.write(recordComponentVisitor);
@@ -195,13 +196,15 @@ public interface ClassCommand extends Command {
         String descriptor;
         String signature;
         Object value;
-        CommandList<FieldCommand> field;
+        CommandGroup<FieldCommand> field;
 
         @Override
-        public void write(ClassWriter classWriter) {
-            FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);
-            for (FieldCommand fieldCommand : field.getCommands()) {
-                fieldCommand.write(fieldVisitor);
+        public void write(ClassWriter classWriter, CommandFilter filter) {
+            if (filter.state(field.getOwner(), field.getName(), field.getDescriptor())) {
+                FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);
+                for (FieldCommand fieldCommand : field.getCommands()) {
+                    fieldCommand.write(fieldVisitor);
+                }
             }
         }
     }
@@ -214,13 +217,15 @@ public interface ClassCommand extends Command {
         String descriptor;
         String signature;
         String[] exceptions;
-        CommandList<MethodCommand> method;
+        CommandGroup<MethodCommand> method;
 
         @Override
-        public void write(ClassWriter classWriter) {
-            MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);
-            for (MethodCommand methodCommand : method.getCommands()) {
-                methodCommand.write(methodVisitor);
+        public void write(ClassWriter classWriter, CommandFilter filter) {
+            if (filter.function(method.getOwner(), method.getName(), method.getDescriptor())) {
+                MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);
+                for (MethodCommand methodCommand : method.getCommands()) {
+                    methodCommand.write(methodVisitor);
+                }
             }
         }
 
@@ -255,7 +260,7 @@ public interface ClassCommand extends Command {
     @AllArgsConstructor
     class End implements ClassCommand {
         @Override
-        public void write(ClassWriter classWriter) {
+        public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitEnd();
         }
     }

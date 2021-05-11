@@ -1,23 +1,19 @@
 package io.xserverless.function.converter;
 
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import io.xserverless.function.command.CommandList;
+import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.command.commands.ClassCommand;
-import io.xserverless.function.command.reader.ClassCommandReader;
 import io.xserverless.function.dto.Function;
 
-import static org.objectweb.asm.Opcodes.ASM7;
-
 public class FunctionConverter {
-    public List<Function> readFunctions(InputStream inputStream) {
+    public List<Function> getFunctions(CommandGroup<ClassCommand> commandGroup) {
         List<Function> functionList = new ArrayList<>();
-        CommandList<ClassCommand> commandList = ClassCommandReader.read(inputStream, ASM7);
-
         String owner = null;
-        for (ClassCommand classCommand : commandList.getCommands()) {
+        for (ClassCommand classCommand : commandGroup.getCommands()) {
             if (classCommand instanceof ClassCommand.Default) {
                 owner = ((ClassCommand.Default) classCommand).getName();
             } else if (classCommand instanceof ClassCommand.Method) {
@@ -26,5 +22,15 @@ public class FunctionConverter {
         }
 
         return functionList;
+    }
+
+    public Map<String, Function> convert(List<CommandGroup<ClassCommand>> commandGroupList) {
+        Map<String, Function> functionMap = new HashMap<>();
+        for (CommandGroup<ClassCommand> commandGroup : commandGroupList) {
+            for (Function function : getFunctions(commandGroup)) {
+                functionMap.put(function.getId(), function);
+            }
+        }
+        return functionMap;
     }
 }

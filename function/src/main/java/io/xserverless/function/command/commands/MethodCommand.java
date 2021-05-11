@@ -1,8 +1,9 @@
 package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
-import io.xserverless.function.command.CommandList;
+import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.dto.Function;
+import io.xserverless.function.dto.State;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -31,7 +32,7 @@ public interface MethodCommand extends Command {
     @Data
     @AllArgsConstructor
     class AnnotationDefault implements MethodCommand {
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {
@@ -54,7 +55,7 @@ public interface MethodCommand extends Command {
     class Annotation implements MethodCommand {
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {
@@ -79,7 +80,7 @@ public interface MethodCommand extends Command {
         TypePath typePath;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {
@@ -115,7 +116,7 @@ public interface MethodCommand extends Command {
         int parameter;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {
@@ -230,7 +231,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(Function function) {
-            function.getRelatedStates().add(owner + "." + name + "." + descriptor);
+            function.getRelatedStates().add(State.builder().owner(owner).name(name).descriptor(descriptor).build());
         }
     }
 
@@ -362,7 +363,7 @@ public interface MethodCommand extends Command {
         TypePath typePath;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {
@@ -402,7 +403,7 @@ public interface MethodCommand extends Command {
         TypePath typePath;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {
@@ -447,7 +448,7 @@ public interface MethodCommand extends Command {
         int[] index;
         String descriptor;
         boolean visible;
-        CommandList<AnnotationCommand> annotation;
+        CommandGroup<AnnotationCommand> annotation;
 
         @Override
         public void write(MethodVisitor visitor) {

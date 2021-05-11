@@ -6,7 +6,10 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class CommandList<C extends Command> {
+public class CommandGroup<C extends Command> {
+    private String owner;
+    private String name;
+    private String descriptor;
     private List<C> commands = new ArrayList<>();
 
     public void add(C c) {

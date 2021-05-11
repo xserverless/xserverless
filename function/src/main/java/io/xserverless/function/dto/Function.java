@@ -42,7 +42,7 @@ public class Function {
     /**
      * id of dependent fields
      */
-    private Set<String> relatedStates;
+    private Set<State> relatedStates;
     /**
      * name of java types
      */

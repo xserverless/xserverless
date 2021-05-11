@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
 import io.xserverless.function.command.writer.ClassCommandWriter;
+import io.xserverless.function.command.writer.CommandFilter;
 import io.xserverless.samples.fibonacci.Fibonacci;
 import org.junit.Test;
 
@@ -18,9 +19,9 @@ public class CommandTest {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
 
-            CommandList<ClassCommand> commandList = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
 
-            for (ClassCommand command : commandList.getCommands()) {
+            for (ClassCommand command : commandGroup.getCommands()) {
                 printCommand(command);
             }
         } catch (Exception e) {
@@ -32,15 +33,15 @@ public class CommandTest {
     public void writeClass() {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            CommandList<ClassCommand> commandList = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
 
-            for (ClassCommand classCommand : commandList.getCommands()) {
+            for (ClassCommand classCommand : commandGroup.getCommands()) {
                 if (classCommand instanceof ClassCommand.Default) {
                     ((ClassCommand.Default) classCommand).setName("io/xserverless/function/command/TestFibonacci");
                 }
             }
 
-            byte[] bytes = new ClassCommandWriter().write(commandList);
+            byte[] bytes = new ClassCommandWriter().write(commandGroup, CommandFilter.ALL);
 
             Class<?> sampleClass = new TestClassLoader().defineClass("io.xserverless.function.command.TestFibonacci", bytes);
             Method main = sampleClass.getMethod("print", int.class);
@@ -65,8 +66,8 @@ public class CommandTest {
             declaredField.setAccessible(true);
             try {
                 Object o = declaredField.get(command);
-                if (o instanceof CommandList) {
-                    for (Command c : ((CommandList<?>) o).getCommands()) {
+                if (o instanceof CommandGroup) {
+                    for (Command c : ((CommandGroup<?>) o).getCommands()) {
                         printCommand(c);
                     }
                 } else {

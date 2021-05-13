@@ -230,6 +230,7 @@ public interface ClassCommand extends Command {
 
         public XFunction getFunction(String owner, XGroup group) {
             XFunction function = group.createOrGetFunction(owner, name, descriptor);
+            group.putMethodCommandGroup(owner, name, descriptor, method);
 
             Type returnType = Type.getReturnType(descriptor);
             group.addPair(function, group.createOrGetType(returnType.getDescriptor()));

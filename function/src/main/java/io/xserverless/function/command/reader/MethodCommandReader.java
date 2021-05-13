@@ -10,11 +10,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.TypePath;
 
 public class MethodCommandReader extends MethodVisitor {
-    private CommandGroup<MethodCommand> commandGroup;
+    private final CommandGroup<MethodCommand> commandGroup = new CommandGroup<>();
 
     public MethodCommandReader(int api) {
         super(api);
-        commandGroup = new CommandGroup<>();
     }
 
     public CommandGroup<MethodCommand> getCommandList() {

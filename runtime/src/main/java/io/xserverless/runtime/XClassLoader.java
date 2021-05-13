@@ -44,14 +44,14 @@ public class XClassLoader extends ClassLoader {
         }
 
         LinkedList<File> fileStack = new LinkedList<>();
-        fileStack.add(dir);
+        fileStack.push(dir);
 
         while (!fileStack.isEmpty()) {
             File file = fileStack.pop();
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
                 if (files != null) {
-                    fileStack.addAll(Arrays.asList(files));
+                    fileStack.addAll(0, Arrays.asList(files));
                 }
             } else if (file.getName().endsWith(".class")) {
                 String className = file.getAbsolutePath()

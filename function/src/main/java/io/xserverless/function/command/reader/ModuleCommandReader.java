@@ -5,11 +5,10 @@ import io.xserverless.function.command.commands.ModuleCommand;
 import org.objectweb.asm.ModuleVisitor;
 
 public class ModuleCommandReader extends ModuleVisitor {
-    private CommandGroup<ModuleCommand> commandGroup;
+    private final CommandGroup<ModuleCommand> commandGroup = new CommandGroup<>();
 
     public ModuleCommandReader(int api) {
         super(api);
-        commandGroup = new CommandGroup<>();
     }
 
     public CommandGroup<ModuleCommand> getCommandList() {

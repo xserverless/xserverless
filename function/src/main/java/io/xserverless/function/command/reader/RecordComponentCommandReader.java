@@ -8,11 +8,10 @@ import org.objectweb.asm.RecordComponentVisitor;
 import org.objectweb.asm.TypePath;
 
 public class RecordComponentCommandReader extends RecordComponentVisitor {
-    private CommandGroup<RecordComponentCommand> commandGroup;
+    private final CommandGroup<RecordComponentCommand> commandGroup = new CommandGroup<>();
 
     public RecordComponentCommandReader(int api) {
         super(api);
-        commandGroup = new CommandGroup<>();
     }
 
     public CommandGroup<RecordComponentCommand> getCommandList() {

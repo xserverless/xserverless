@@ -16,11 +16,10 @@ import org.objectweb.asm.RecordComponentVisitor;
 import org.objectweb.asm.TypePath;
 
 public class ClassCommandReader extends ClassVisitor {
-    private CommandGroup<ClassCommand> commandGroup;
+    private final CommandGroup<ClassCommand> commandGroup = new CommandGroup<>();
 
     public ClassCommandReader(int api) {
         super(api);
-        commandGroup = new CommandGroup<>();
     }
 
     public static CommandGroup<ClassCommand> read(InputStream inputStream, int api) {

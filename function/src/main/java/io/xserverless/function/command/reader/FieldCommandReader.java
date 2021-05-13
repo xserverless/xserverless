@@ -8,11 +8,10 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.TypePath;
 
 public class FieldCommandReader extends FieldVisitor {
-    private CommandGroup<FieldCommand> commandGroup;
+    private final CommandGroup<FieldCommand> commandGroup = new CommandGroup<>();
 
     public FieldCommandReader(int api) {
         super(api);
-        commandGroup = new CommandGroup<>();
     }
 
     public CommandGroup<FieldCommand> getCommandList() {

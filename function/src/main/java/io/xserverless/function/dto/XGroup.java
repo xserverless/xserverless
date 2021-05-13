@@ -8,14 +8,27 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import io.xserverless.function.command.CommandGroup;
+import io.xserverless.function.command.commands.MethodCommand;
+
 public class XGroup {
     private final Map<String, XFunction> functionMap = new HashMap<>();
     private final Map<String, XState> stateMap = new HashMap<>();
     private final Map<String, XType> typeMap = new HashMap<>();
     private final Map<XObject, Set<XObject>> pairMap = new HashMap<>();
+    private final Map<String, CommandGroup<MethodCommand>> methodMap = new HashMap<>();
+
+    public void putMethodCommandGroup(String owner, String name, String descriptor, CommandGroup<MethodCommand> commandGroup) {
+        methodMap.put(key(owner, name, descriptor), commandGroup);
+    }
+
+    public CommandGroup<MethodCommand> getMethodCommandGroup(String owner, String name, String descriptor) {
+        String id = key(owner, name, descriptor);
+        return methodMap.get(id);
+    }
 
     public XFunction createOrGetFunction(String owner, String name, String descriptor) {
-        String id = new StringJoiner(":", "[", "]").add(owner).add(name).add(descriptor).toString();
+        String id = key(owner, name, descriptor);
         if (!functionMap.containsKey(id)) {
             XFunction function = new XFunction(owner, name, descriptor);
             functionMap.put(id, function);
@@ -24,8 +37,12 @@ public class XGroup {
         return functionMap.get(id);
     }
 
+    private String key(String owner, String name, String descriptor) {
+        return new StringJoiner(":", "[", "]").add(owner).add(name).add(descriptor).toString();
+    }
+
     public XState createOrGetState(String owner, String name, String descriptor) {
-        String id = new StringJoiner(":", "[", "]").add(owner).add(name).add(descriptor).toString();
+        String id = key(owner, name, descriptor);
         if (!stateMap.containsKey(id)) {
             XState state = new XState(owner, name, descriptor);
             stateMap.put(id, state);

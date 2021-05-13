@@ -5,11 +5,10 @@ import io.xserverless.function.command.commands.AnnotationCommand;
 import org.objectweb.asm.AnnotationVisitor;
 
 public class AnnotationCommandReader extends AnnotationVisitor {
-    private CommandGroup<AnnotationCommand> commandGroup;
+    private final CommandGroup<AnnotationCommand> commandGroup = new CommandGroup<>();
 
     public AnnotationCommandReader(int api) {
         super(api);
-        commandGroup = new CommandGroup<>();
     }
 
     public CommandGroup<AnnotationCommand> getCommandList() {

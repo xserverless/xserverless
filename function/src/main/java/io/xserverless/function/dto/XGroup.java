@@ -3,12 +3,15 @@ package io.xserverless.function.dto;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import io.xserverless.function.command.CommandGroup;
+import io.xserverless.function.command.MethodOperations;
 import io.xserverless.function.command.commands.MethodCommand;
 
 public class XGroup {
@@ -69,6 +72,53 @@ public class XGroup {
 
     public Set<XObject> relatedReadOnly(XObject obj) {
         return Collections.unmodifiableSet(pairMap.getOrDefault(obj, Collections.emptySet()));
+    }
+
+    public Set<XState> states(String owner, String name, String descriptor, Set<String> checked) {
+        if (checked.contains(key(owner, name, descriptor))) {
+            // checked
+            return Collections.emptySet();
+        }
+        if (Objects.equals("<init>", name)) {
+            // constructors
+            return Collections.emptySet();
+        }
+        Set<XObject> objects = pairMap.get(new XFunction(owner, name, descriptor));
+        if (objects == null) {
+            // rt.jar
+            return Collections.emptySet();
+        }
+        Set<XState> states = new HashSet<>();
+        for (XObject object : objects) {
+            if (object instanceof XState) {
+                states.add(((XState) object));
+            }
+        }
+        if (!states.isEmpty()) {
+            return states;
+        }
+
+        CommandGroup<MethodCommand> commandGroup = getMethodCommandGroup(owner, name, descriptor);
+        if (commandGroup == null) {
+            // out of scope
+            return Collections.emptySet();
+        }
+        List<MethodOperations.Operation> operations = MethodOperations.operations(commandGroup);
+
+        for (MethodOperations.Operation operation : operations) {
+            MethodOperations.Ref ref = operation.getRef();
+            if (ref != null && !Objects.equals(operation.getName(), "<init>")) {
+                MethodOperations.Operation createdFrom = ref.getCreatedFrom();
+                if (createdFrom != null) {
+                    if (!Objects.equals(createdFrom.getName(), "<init>")) {
+                        states.addAll(states(operation.getOwner(), operation.getName(), operation.getDescriptor(), checked));
+                        checked.add(key(operation.getOwner(), operation.getName(), operation.getDescriptor()));
+                    }
+                }
+            }
+        }
+
+        return states;
     }
 
     public void iterator(Consumer<XObject> c) {

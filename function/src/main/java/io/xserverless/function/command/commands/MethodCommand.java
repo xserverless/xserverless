@@ -693,38 +693,36 @@ public interface MethodCommand extends Command {
                     break;
                 case Opcodes.ALOAD:
                     boolean loaded = false;
-                    if (!loaded) {
-                        if (operations.getRefStored().containsKey(var)) {
-                            operations.getRefStack().push(operations.getRefStored().get(var));
-                        } else {
-                            for (LocalVariable localVariable : operations.getLocalVariableList()) {
-                                if (localVariable.getIndex() == var) {
-                                    boolean start = false;
-                                    boolean end = false;
-                                    for (Label label : operations.getLabels()) {
-                                        if (label.getLabel().toString().equals(localVariable.getStart().toString())) {
-                                            start = true;
-                                        }
-                                        if (label.getLabel().toString().equals(localVariable.getEnd().toString())) {
-                                            end = true;
-                                        }
+                    if (operations.getRefStored().containsKey(var)) {
+                        operations.getRefStack().push(operations.getRefStored().get(var));
+                    } else {
+                        for (LocalVariable localVariable : operations.getLocalVariableList()) {
+                            if (localVariable.getIndex() == var) {
+                                boolean start = false;
+                                boolean end = false;
+                                for (Label label : operations.getLabels()) {
+                                    if (label.getLabel().toString().equals(localVariable.getStart().toString())) {
+                                        start = true;
                                     }
-                                    if (start && !end) {
-                                        MethodOperations.Ref ref = new MethodOperations.Ref(localVariable.getName(), localVariable.getDescriptor(), localVariable.getSignature());
-                                        MethodOperations.Operation operation = new MethodOperations.Operation();
-                                        operation.setDescriptor("LOCAL_VARIABLE");
-                                        operation.setName("LOCAL_VARIABLE");
-                                        operation.setOwner("LOCAL_VARIABLE");
-                                        ref.setCreatedFrom(operation);
-                                        operations.getRefStack().push(ref);
-                                        loaded = true;
-                                        break;
+                                    if (label.getLabel().toString().equals(localVariable.getEnd().toString())) {
+                                        end = true;
                                     }
                                 }
+                                if (start && !end) {
+                                    MethodOperations.Ref ref = new MethodOperations.Ref(localVariable.getName(), localVariable.getDescriptor(), localVariable.getSignature());
+                                    MethodOperations.Operation operation = new MethodOperations.Operation();
+                                    operation.setDescriptor("LOCAL_VARIABLE");
+                                    operation.setName("LOCAL_VARIABLE");
+                                    operation.setOwner("LOCAL_VARIABLE");
+                                    ref.setCreatedFrom(operation);
+                                    operations.getRefStack().push(ref);
+                                    loaded = true;
+                                    break;
+                                }
                             }
-                            if (!loaded) {
-                                throw new IllegalStateException("invalid ALOAD opcode.");
-                            }
+                        }
+                        if (!loaded) {
+                            throw new IllegalStateException("invalid ALOAD opcode.");
                         }
                     }
 
@@ -770,12 +768,25 @@ public interface MethodCommand extends Command {
             operations.printStack();
             System.out.println("opcode:\t" + OpcodeDecode.CODES[opcode] + "\ttype=" + type);
             switch (opcode) {
-                case Opcodes.NEW:
-                    operations.getRefStack().push(new MethodOperations.Ref(type));
-                    break;
+                case Opcodes.NEW: {
+                    MethodOperations.Ref ref = new MethodOperations.Ref(type);
+                    MethodOperations.Operation operation = new MethodOperations.Operation();
+                    operation.setOwner("NEW");
+                    operation.setName("NEW");
+                    operation.setDescriptor("NEW");
+                    ref.setCreatedFrom(operation);
+                    operations.getRefStack().push(ref);
+                }
+                break;
                 case Opcodes.ANEWARRAY:
                     operations.getRefStack().pop();
-                    operations.getRefStack().push(new MethodOperations.Ref("[" + type));
+                    MethodOperations.Ref ref = new MethodOperations.Ref("[" + type);
+                    MethodOperations.Operation operation = new MethodOperations.Operation();
+                    operation.setOwner("ANEWARRAY");
+                    operation.setName("ANEWARRAY");
+                    operation.setDescriptor("ANEWARRAY");
+                    ref.setCreatedFrom(operation);
+                    operations.getRefStack().push(ref);
                     break;
                 case Opcodes.CHECKCAST:
                     // NOOP

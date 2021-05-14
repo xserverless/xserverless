@@ -14,6 +14,7 @@ import io.xserverless.samples.chains.A;
 import io.xserverless.samples.chains.B;
 import io.xserverless.samples.chains.C;
 import io.xserverless.samples.chains.D;
+import io.xserverless.samples.states.Counter;
 import org.junit.Test;
 
 import static org.objectweb.asm.Opcodes.ASM7;
@@ -38,6 +39,22 @@ public class ChainsConverterTest {
         group.iterator(obj -> {
             if (obj instanceof XFunction) {
                 outputChains(group, ((XFunction) obj), new HashSet<>());
+            }
+        });
+    }
+
+    @Test
+    public void testStateless() {
+        XGroup group = new XGroup();
+        readFunctions(Counter.class, group);
+
+        group.iterator(obj -> {
+            if (obj instanceof XFunction) {
+                System.out.println(((XFunction) obj).getOwner());
+                System.out.println(((XFunction) obj).getName());
+                System.out.println(((XFunction) obj).getDescriptor());
+                System.out.println(group.states(((XFunction) obj).getOwner(), ((XFunction) obj).getName(), ((XFunction) obj).getDescriptor(), new HashSet<>()));
+                System.out.println();
             }
         });
     }

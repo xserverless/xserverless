@@ -10,4 +10,12 @@ public class Counter {
     public void output() {
         System.out.println(n);
     }
+
+    public double stateless() {
+        return Math.random();
+    }
+
+    public void stateless2() {
+        new Counter().output();
+    }
 }

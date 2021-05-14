@@ -97,7 +97,7 @@ public class MethodOperations {
         }
     }
 
-    public static void operations(CommandGroup<MethodCommand> commandGroup) {
+    public static List<Operation> operations(CommandGroup<MethodCommand> commandGroup) {
         MethodOperations methodOperations = new MethodOperations();
         for (MethodCommand command : commandGroup.getCommands()) {
             if (command instanceof MethodCommand.LocalVariable) {
@@ -105,12 +105,15 @@ public class MethodOperations {
             }
         }
 
+        List<Operation> operationList = new ArrayList<>();
+
         LinkedList<MethodOperations> operations = new LinkedList<>();
         operations.add(methodOperations);
 
         while (!operations.isEmpty()) {
             MethodOperations op = operations.pop();
             operations.addAll(operations(op, commandGroup));
+            operationList.addAll(op.operationList);
 
             System.out.println("============================");
             System.out.println("operations:");
@@ -137,6 +140,8 @@ public class MethodOperations {
 
             System.out.println();
         }
+
+        return operationList;
     }
 
     private static List<MethodOperations> operations(MethodOperations methodOperations, CommandGroup<MethodCommand> commandGroup) {

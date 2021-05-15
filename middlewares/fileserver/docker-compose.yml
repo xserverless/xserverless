@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  tracker:
+    image: season/fastdfs:1.2
+    restart: on-failure
+    volumes:
+      - ./data/tracker:/fastdfs/tracker/data
+      - ./config/client.conf:/etc/fdfs/client.conf
+    ports:
+      - 22122:22122
+    networks:
+      fs_network:
+        ipv4_address: 172.200.1.2
+    command:
+      - "tracker"
+
+  storage:
+    image: season/fastdfs:1.2
+    restart: on-failure
+    volumes:
+      - ./data/storage:/fastdfs/store_path
+    environment:
+      - TRACKER_SERVER=172.200.1.2:22122
+    ports:
+      - 23000:23000
+    networks:
+      fs_network:
+        ipv4_address: 172.200.1.3
+    command:
+      - "storage"
+
+  nginx:
+    image: season/fastdfs:1.2
+    restart: on-failure
+    volumes:
+      - ./data/storage:/fastdfs/store_path
+      - ./config/nginx.conf:/etc/nginx/conf/nginx.conf
+    environment:
+      - TRACKER_SERVER=172.200.1.2:22122
+    ports:
+      - 22080:80
+    networks:
+      fs_network:
+        ipv4_address: 172.200.1.4
+    command:
+      - "nginx"
+
+
+networks:
+  fs_network:
+    ipam:
+      config:
+        - subnet: 172.200.1.0/24
+          gateway: 172.200.1.1

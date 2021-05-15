@@ -21,6 +21,7 @@
   </properties>
 
   <modules>
+    <module>fdfs-ex</module>
     <module>samples</module>
     <module>function</module>
     <module>runtime</module>

@@ -2,3 +2,9 @@
 /.idea/
 .DS_Store
 /target/
+
+/middlewares/database/data/*
+!/middlewares/database/data/.gitkeep
+
+/middlewares/fileserver/data/*
+!/middlewares/fileserver/data/.gitkeep

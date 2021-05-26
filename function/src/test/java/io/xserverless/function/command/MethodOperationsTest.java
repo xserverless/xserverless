@@ -15,7 +15,7 @@ public class MethodOperationsTest {
         try (InputStream inputStream = AsmTest.class.getResourceAsStream("/" + AsmTest.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
 
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
+            CommandGroup.ClassCommandGroup commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             for (ClassCommand command : commandGroup.getCommands()) {
                 if (command instanceof ClassCommand.Method) {

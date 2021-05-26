@@ -15,7 +15,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import io.xserverless.function.command.CommandGroup;
-import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
 import io.xserverless.function.command.writer.ClassCommandWriter;
 import io.xserverless.function.command.writer.CommandFilter;
@@ -68,7 +67,7 @@ public class AsmTest {
         try (FileInputStream fis = new FileInputStream(jar)) {
             XGroup group = new FunctionConverter().readJar(fis);
 
-            group.iterator(System.out::println);
+            group.stream().forEach(System.out::println);
         }
     }
 
@@ -132,11 +131,11 @@ public class AsmTest {
              OutputStream outputStream = new FileOutputStream(funcClassFileOutput);
              OutputStream outputStreamOriginal = new FileOutputStream(funcClassFileOriginal);
         ) {
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
+            CommandGroup.ClassCommandGroup commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             XGroup group = new FunctionConverter().convert(Collections.singletonList(commandGroup));
 
-            CommandFilter commandFilter = CommandFilter.createFilter(group, group.createOrGetFunction("io/xserverless/devcenter/functions/service/FunctionService", "upload",
+            CommandFilter commandFilter = CommandFilter.createFilter(group, group.createFunction("io/xserverless/devcenter/functions/service/FunctionService", "upload",
                     "(Lorg/springframework/web/multipart/MultipartFile;)V"));
 
             LoggerFactory.getLogger(getClass()).info("filtered class");

@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
 import io.xserverless.function.command.writer.ClassCommandWriter;
 import io.xserverless.function.command.writer.CommandFilter;
@@ -23,7 +22,7 @@ import static org.objectweb.asm.Opcodes.ASM9;
 public class CommandFilterTest {
     @Test
     public void testFilter() {
-        List<CommandGroup<ClassCommand>> list = new ArrayList<>();
+        List<CommandGroup.ClassCommandGroup> list = new ArrayList<>();
         list.add(readFunctions(A.class));
         list.add(readFunctions(B.class));
         list.add(readFunctions(C.class));
@@ -31,12 +30,12 @@ public class CommandFilterTest {
 
         XGroup group = new FunctionConverter().convert(list);
 
-        CommandFilter commandFilter = CommandFilter.createFilter(group, group.createOrGetFunction("io/xserverless/samples/chains/A", "ab", "()V"));
+        CommandFilter commandFilter = CommandFilter.createFilter(group, group.createFunction("io/xserverless/samples/chains/A", "ab", "()V"));
 
         System.out.println(commandFilter);
 
         File outputDir = new File("./target/test-outputs");
-        for (CommandGroup<ClassCommand> commandGroup : list) {
+        for (CommandGroup.ClassCommandGroup commandGroup : list) {
             byte[] bytes = new ClassCommandWriter().write(commandGroup, commandFilter);
             if (bytes.length > 0) {
                 File file = new File(outputDir, commandGroup.getName() + ".class");
@@ -51,7 +50,7 @@ public class CommandFilterTest {
     }
 
 
-    private CommandGroup<ClassCommand> readFunctions(Class<?> c) {
+    private CommandGroup.ClassCommandGroup readFunctions(Class<?> c) {
         try (InputStream inputStream = c.getResourceAsStream("/" + c.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
             return ClassCommandReader.read(inputStream, ASM9);

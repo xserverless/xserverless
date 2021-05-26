@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.xserverless.function.command.CommandGroup;
-import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
 import io.xserverless.function.dto.XGroup;
 import io.xserverless.function.dto.XObject;
@@ -27,7 +26,7 @@ public class ChainsConverterTest {
         readFunctions(C.class, group);
         readFunctions(D.class, group);
 
-        group.iterator(obj -> {
+        group.stream().forEach(obj -> {
             if (obj.isFunction()) {
                 System.out.println(obj);
             }
@@ -35,7 +34,7 @@ public class ChainsConverterTest {
 
         System.out.println("----------- function chains --------------");
 
-        group.iterator(obj -> {
+        group.stream().forEach(obj -> {
             if (obj.isFunction()) {
                 outputChains(group, obj, new HashSet<>());
             }
@@ -47,7 +46,7 @@ public class ChainsConverterTest {
         XGroup group = new XGroup();
         readFunctions(Counter.class, group);
 
-        group.iterator(obj -> {
+        group.stream().forEach(obj -> {
             if (obj.isFunction()) {
                 System.out.println((obj).getOwner());
                 System.out.println((obj).getName());
@@ -81,7 +80,7 @@ public class ChainsConverterTest {
     private void readFunctions(Class<?> c, XGroup group) {
         try (InputStream inputStream = c.getResourceAsStream("/" + c.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
+            CommandGroup.ClassCommandGroup commandGroup = ClassCommandReader.read(inputStream, ASM9);
             new FunctionConverter().getFunctions(commandGroup, group);
         } catch (Exception e) {
             throw new RuntimeException(e);

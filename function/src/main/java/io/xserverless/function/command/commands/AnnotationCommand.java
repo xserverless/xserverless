@@ -27,7 +27,7 @@ public interface AnnotationCommand extends Command {
         @Override
         public void write(AnnotationVisitor visitor) {
             visitor.visit(name, value);
-log("visitor.visit(name, value);", name, value);
+            log("visitor.visit(name, value);", name, value);
         }
     }
 
@@ -41,7 +41,7 @@ log("visitor.visit(name, value);", name, value);
         @Override
         public void write(AnnotationVisitor visitor) {
             visitor.visitEnum(name, descriptor, value);
-log("visitor.visitEnum(name, descriptor, value);", name, descriptor, value);
+            log("visitor.visitEnum(name, descriptor, value);", name, descriptor, value);
         }
     }
 
@@ -56,14 +56,14 @@ log("visitor.visitEnum(name, descriptor, value);", name, descriptor, value);
         @Override
         public void write(AnnotationVisitor visitor) {
             AnnotationVisitor annotationVisitor = visitor.visitAnnotation(name, descriptor);
-log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(name, descriptor);", name, descriptor);
+            log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(name, descriptor);", name, descriptor);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
             }
         }
 
         public void updateType(String owner, XGroup group) {
-            group.addPair(group.createTypeByName(owner), group.createOrGetType(descriptor));
+            group.addPair(group.createTypeByName(owner), group.createType(descriptor));
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.updateType(owner, group);
             }
@@ -79,7 +79,7 @@ log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(name, descrip
         @Override
         public void write(AnnotationVisitor visitor) {
             AnnotationVisitor annotationVisitor = visitor.visitArray(name);
-log("AnnotationVisitor annotationVisitor = visitor.visitArray(name);", name);
+            log("AnnotationVisitor annotationVisitor = visitor.visitArray(name);", name);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
             }
@@ -98,7 +98,7 @@ log("AnnotationVisitor annotationVisitor = visitor.visitArray(name);", name);
         @Override
         public void write(AnnotationVisitor visitor) {
             visitor.visitEnd();
-log("visitor.visitEnd();");
+            log("visitor.visitEnd();");
         }
     }
 }

@@ -84,7 +84,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -111,7 +111,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -150,7 +150,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -874,7 +874,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetState(owner, name, descriptor));
+            group.addPair(function, group.createState(owner, name, descriptor));
         }
     }
 
@@ -1002,7 +1002,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetFunction(owner, name, descriptor));
+            group.addPair(function, group.createFunction(owner, name, descriptor));
         }
     }
 
@@ -1033,19 +1033,16 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetState(function.getOwner(), name, descriptor));
+            group.addPair(function, group.createState(function.getOwner(), name, descriptor));
 
-            System.out.println("==== bootstrap method arguments ====");
             if (bootstrapMethodArguments != null) {
                 for (Object bootstrapMethodArgument : bootstrapMethodArguments) {
-                    System.out.println(bootstrapMethodArgument + "\t:\t" + bootstrapMethodArgument.getClass());
-                    if(bootstrapMethodArgument instanceof Handle) {
+                    if (bootstrapMethodArgument instanceof Handle) {
                         Handle handle = (Handle) bootstrapMethodArgument;
-                        group.addPair(function, group.createOrGetFunction(handle.getOwner(), handle.getName(), handle.getDesc()));
+                        group.addPair(function, group.createFunction(handle.getOwner(), handle.getName(), handle.getDesc()));
                     }
                 }
             }
-            System.out.println("---- bootstrap method arguments ----");
         }
     }
 
@@ -1281,7 +1278,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
         }
     }
 
@@ -1306,7 +1303,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -1349,7 +1346,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }
@@ -1374,7 +1371,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
 
             new SignatureCommandReader(ASM9).updateFunctionAndState(signature, function, group);
         }
@@ -1404,7 +1401,7 @@ public interface MethodCommand extends Command {
 
         @Override
         public void updateFunction(XObject function, XGroup group) {
-            group.addPair(function, group.createOrGetType(descriptor));
+            group.addPair(function, group.createType(descriptor));
             for (AnnotationCommand annotationCommand : annotation.getCommands()) {
                 annotationCommand.updateFunction(function);
             }

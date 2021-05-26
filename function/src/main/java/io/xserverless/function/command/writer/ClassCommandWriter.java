@@ -7,7 +7,7 @@ import org.objectweb.asm.ClassWriter;
 import static org.objectweb.asm.Opcodes.ASM9;
 
 public class ClassCommandWriter {
-    public byte[] write(CommandGroup<ClassCommand> commandGroup, CommandFilter filter) {
+    public byte[] write(CommandGroup.ClassCommandGroup commandGroup, CommandFilter filter) {
         if (filter.type(commandGroup.getName())) {
             ClassWriter classWriter = new ClassWriter(ASM9);
             for (ClassCommand command : commandGroup.getCommands()) {

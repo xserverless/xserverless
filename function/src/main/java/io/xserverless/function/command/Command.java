@@ -10,4 +10,8 @@ public interface Command {
             logger.debug(template.replaceAll("([\\w\\s]+)[,)]", "$1=[{}]"), args);
         }
     }
+
+    default boolean isDefault() {
+        return false;
+    }
 }

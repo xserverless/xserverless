@@ -1,8 +1,8 @@
 package io.xserverless.function.command.writer;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -67,41 +67,52 @@ public class CommandFilter {
 
     public static CommandFilter createFilter(XGroup group, XObject entry) {
         Set<XObject> related = new HashSet<>();
-        entryConstructor(group, entry, related);
-        relatedFunctions(group, entry, related);
-        relatedTypes(group, group.createTypeByName(entry.getOwner()), related);
 
-        CommandFilter commandFilter = new CommandFilter();
+        LinkedList<XObject> stack = new LinkedList<>();
 
-        List<XObject> types = new ArrayList<>();
+        // entry
+        stack.add(entry);
+        // entry owner constructor
+        group.stream()
+                .filter(XObject::isFunction)
+                .filter(obj -> Objects.equals(obj.getOwner(), entry.getOwner()) &&
+                        Objects.equals(obj.getName(), "<init>") &&
+                        Objects.equals(obj.getDescriptor(), "()V"))
+                .forEach(stack::add);
 
-        for (XObject obj : related) {
-            if (obj.isFunction()) {
-                types.add(group.createTypeByName(obj.getOwner()));
-                for (XObject object : group.relatedReadOnly(obj)) {
-                    if (object.isType()) {
-                        types.add(object);
+        // all related
+        while (!stack.isEmpty()) {
+            XObject object = stack.pop();
+
+            // all related
+            Set<XObject> objects = related(group, object, related);
+            if (objects != null) {
+                for (XObject obj : objects) {
+                    if (obj.isFunction()) {
+                        XObject type = group.createTypeByName(obj.getOwner());
+                        stack.add(type);
                     }
+                    stack.add(obj);
                 }
-            } else if (obj.isType()) {
-                types.add(obj);
+            }
+            // whole type
+            if (object.isType()) {
+                // annotation
+                if (group.isAnnotation(object)) {
+                    String ownerName = Type.getType(object.getDescriptor()).getInternalName();
+                    group.stream().filter(obj -> !obj.isType())
+                            .filter(obj -> !related.contains(obj))
+                            .filter(obj -> Objects.equals(ownerName, obj.getOwner()))
+                            .forEach(stack::add);
+                }
             }
         }
 
-        for (XObject type : types) {
-            relatedTypes(group, type, related);
-        }
+        CommandFilter commandFilter = new CommandFilter();
 
         for (XObject obj : related) {
             if (obj.isFunction()) {
                 commandFilter.allowFunction(obj);
-                for (XObject object : group.relatedReadOnly(obj)) {
-                    if (object.isType()) {
-                        commandFilter.allowType(object);
-                    } else if (object.isState()) {
-                        commandFilter.allowState(object);
-                    }
-                }
             } else if (obj.isType()) {
                 commandFilter.allowType(obj);
             }
@@ -109,52 +120,14 @@ public class CommandFilter {
         return commandFilter;
     }
 
-    private static void entryConstructor(XGroup group, XObject entry, Set<XObject> related) {
-        group.iterator(obj -> {
-            if (obj.isFunction()) {
-                if (Objects.equals(obj.getOwner(), entry.getOwner()) &&
-                        Objects.equals(obj.getName(), "<init>") &&
-                        Objects.equals(obj.getDescriptor(), "()V")) {
-                    relatedFunctions(group, obj, related);
-                }
-            }
-        });
+    private static Set<XObject> related(XGroup group, XObject object, Set<XObject> related) {
+        if (related.contains(object)) {
+            return Collections.emptySet();
+        }
+
+        related.add(object);
+        return group.relatedReadOnly(object);
     }
-
-    private static void relatedTypes(XGroup group, XObject entry, Set<XObject> related) {
-        if (related.contains(entry)) {
-            return;
-        }
-
-        related.add(entry);
-
-        Set<XObject> relatedSet = group.relatedReadOnly(entry);
-        if (relatedSet != null) {
-            for (XObject object : relatedSet) {
-                if (object.isType()) {
-                    relatedTypes(group, object, related);
-                }
-            }
-        }
-    }
-
-    private static void relatedFunctions(XGroup group, XObject entry, Set<XObject> related) {
-        if (related.contains(entry)) {
-            return;
-        }
-
-        related.add(entry);
-
-        Set<XObject> relatedSet = group.relatedReadOnly(entry);
-        if (relatedSet != null) {
-            for (XObject object : relatedSet) {
-                if (object.isFunction()) {
-                    relatedFunctions(group, object, related);
-                }
-            }
-        }
-    }
-
 
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

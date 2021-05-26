@@ -16,7 +16,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitMainClass(mainClass);
-log("visitor.visitMainClass(mainClass);", mainClass);
+            log("visitor.visitMainClass(mainClass);", mainClass);
         }
     }
 
@@ -28,7 +28,7 @@ log("visitor.visitMainClass(mainClass);", mainClass);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitPackage(packaze);
-log("visitor.visitPackage(packaze);", packaze);
+            log("visitor.visitPackage(packaze);", packaze);
         }
     }
 
@@ -42,7 +42,7 @@ log("visitor.visitPackage(packaze);", packaze);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitRequire(module, access, version);
-log("visitor.visitRequire(module, access, version);", module, access, version);
+            log("visitor.visitRequire(module, access, version);", module, access, version);
         }
     }
 
@@ -56,7 +56,7 @@ log("visitor.visitRequire(module, access, version);", module, access, version);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitExport(packaze, access, modules);
-log("visitor.visitExport(packaze, access, modules);", packaze, access, modules);
+            log("visitor.visitExport(packaze, access, modules);", packaze, access, modules);
         }
     }
 
@@ -70,7 +70,7 @@ log("visitor.visitExport(packaze, access, modules);", packaze, access, modules);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitOpen(packaze, access, modules);
-log("visitor.visitOpen(packaze, access, modules);", packaze, access, modules);
+            log("visitor.visitOpen(packaze, access, modules);", packaze, access, modules);
         }
     }
 
@@ -82,7 +82,7 @@ log("visitor.visitOpen(packaze, access, modules);", packaze, access, modules);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitUse(service);
-log("visitor.visitUse(service);", service);
+            log("visitor.visitUse(service);", service);
         }
     }
 
@@ -95,7 +95,7 @@ log("visitor.visitUse(service);", service);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitProvide(service, providers);
-log("visitor.visitProvide(service, providers);", service, providers);
+            log("visitor.visitProvide(service, providers);", service, providers);
         }
     }
 
@@ -106,7 +106,7 @@ log("visitor.visitProvide(service, providers);", service, providers);
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitEnd();
-log("visitor.visitEnd();");
+            log("visitor.visitEnd();");
         }
     }
 }

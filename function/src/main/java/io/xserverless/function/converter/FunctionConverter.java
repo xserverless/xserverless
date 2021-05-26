@@ -30,7 +30,7 @@ import org.apache.commons.io.IOUtils;
 import static org.objectweb.asm.Opcodes.ASM9;
 
 public class FunctionConverter {
-    public void getFunctions(CommandGroup<ClassCommand> commandGroup, XGroup group) {
+    public void getFunctions(CommandGroup.ClassCommandGroup commandGroup, XGroup group) {
         String owner = null;
         for (ClassCommand classCommand : commandGroup.getCommands()) {
             if (classCommand instanceof ClassCommand.Default) {
@@ -44,9 +44,9 @@ public class FunctionConverter {
         }
     }
 
-    public XGroup convert(List<CommandGroup<ClassCommand>> commandGroupList) {
+    public XGroup convert(List<CommandGroup.ClassCommandGroup> commandGroupList) {
         XGroup group = new XGroup();
-        for (CommandGroup<ClassCommand> commandGroup : commandGroupList) {
+        for (CommandGroup.ClassCommandGroup commandGroup : commandGroupList) {
             getFunctions(commandGroup, group);
         }
         return group;
@@ -103,6 +103,7 @@ public class FunctionConverter {
                 readJar(entry.getValue(), group, classSet);
             }
         });
+        group.updateInherits();
     }
 
     private void readClass(File file, XGroup group, Set<String> classSet) throws IOException {
@@ -112,7 +113,7 @@ public class FunctionConverter {
     }
 
     private void readClass(InputStream inputStream, XGroup group, Set<String> classSet) {
-        CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
+        CommandGroup.ClassCommandGroup commandGroup = ClassCommandReader.read(inputStream, ASM9);
         Optional<ClassCommand> first = commandGroup.getCommands().stream().filter(classCommand -> classCommand instanceof ClassCommand.Default).findFirst();
         if (first.isPresent()) {
             String name = ((ClassCommand.Default) first.get()).getName();

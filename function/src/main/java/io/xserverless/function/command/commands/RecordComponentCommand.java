@@ -21,7 +21,7 @@ public interface RecordComponentCommand extends Command {
         @Override
         public void write(RecordComponentVisitor visitor) {
             AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptor, visible);
-log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptor, visible);", descriptor, visible);
+            log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptor, visible);", descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
             }
@@ -40,7 +40,7 @@ log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(descriptor, v
         @Override
         public void write(RecordComponentVisitor visitor) {
             AnnotationVisitor annotationVisitor = visitor.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
-log("AnnotationVisitor annotationVisitor = visitor.visitTypeAnnotation(typeRef, typePath, descriptor, visible);", typeRef, typePath, descriptor, visible);
+            log("AnnotationVisitor annotationVisitor = visitor.visitTypeAnnotation(typeRef, typePath, descriptor, visible);", typeRef, typePath, descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
             }
@@ -55,7 +55,7 @@ log("AnnotationVisitor annotationVisitor = visitor.visitTypeAnnotation(typeRef, 
         @Override
         public void write(RecordComponentVisitor visitor) {
             visitor.visitAttribute(attribute);
-log("visitor.visitAttribute(attribute);", attribute);
+            log("visitor.visitAttribute(attribute);", attribute);
         }
     }
 
@@ -66,7 +66,7 @@ log("visitor.visitAttribute(attribute);", attribute);
         @Override
         public void write(RecordComponentVisitor visitor) {
             visitor.visitEnd();
-log("visitor.visitEnd();" );
+            log("visitor.visitEnd();");
         }
     }
 }

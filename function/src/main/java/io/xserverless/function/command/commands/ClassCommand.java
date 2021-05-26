@@ -131,7 +131,7 @@ public interface ClassCommand extends Command {
         }
 
         public void updateType(String owner, XGroup group) {
-            group.addPair(group.createTypeByName(owner), group.createOrGetType(descriptor));
+            group.addPair(group.createTypeByName(owner), group.createType(descriptor));
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.updateType(owner, group);
             }
@@ -157,7 +157,7 @@ public interface ClassCommand extends Command {
         }
 
         public void updateType(String owner, XGroup group) {
-            group.addPair(group.createTypeByName(owner), group.createOrGetType(descriptor));
+            group.addPair(group.createTypeByName(owner), group.createType(descriptor));
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.updateType(owner, group);
             }
@@ -234,7 +234,7 @@ public interface ClassCommand extends Command {
 
         @Override
         public void updateType(String owner, XGroup group) {
-            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, group.createOrGetState(owner, name, descriptor), group);
+            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, group.createState(owner, name, descriptor), group);
         }
     }
 
@@ -261,7 +261,7 @@ public interface ClassCommand extends Command {
 
         @Override
         public void updateType(String owner, XGroup group) {
-            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, group.createOrGetState(owner, name, descriptor), group);
+            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, group.createState(owner, name, descriptor), group);
         }
     }
 
@@ -287,15 +287,15 @@ public interface ClassCommand extends Command {
         }
 
         public void updateType(String owner, XGroup group) {
-            XObject function = group.createOrGetFunction(owner, name, descriptor);
+            XObject function = group.createFunction(owner, name, descriptor);
             group.putMethodCommandGroup(owner, name, descriptor, method);
 
             Type returnType = Type.getReturnType(descriptor);
-            group.addPair(function, group.createOrGetType(returnType.getDescriptor()));
+            group.addPair(function, group.createType(returnType.getDescriptor()));
 
             Type[] argumentTypes = Type.getArgumentTypes(descriptor);
             for (Type argumentType : argumentTypes) {
-                group.addPair(function, group.createOrGetType(argumentType.getDescriptor()));
+                group.addPair(function, group.createType(argumentType.getDescriptor()));
             }
 
             for (MethodCommand methodCommand : method.getCommands()) {

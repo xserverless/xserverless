@@ -1,14 +1,16 @@
 package io.xserverless.function.dto;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.xserverless.function.command.CommandGroup;
@@ -23,13 +25,13 @@ public class XGroup {
     private final Map<String, XObject> typeMap = new HashMap<>();
     private final Map<XObject, Set<XObject>> pairMap = new HashMap<>();
     private final Map<String, CommandGroup<MethodCommand>> methodMap = new HashMap<>();
-    private final Map<String, CommandGroup<ClassCommand>> classMap = new HashMap<>();
+    private final Map<String, CommandGroup.ClassCommandGroup> classMap = new HashMap<>();
 
-    public void addClass(String name, CommandGroup<ClassCommand> classCommandCommandGroup) {
-         classMap.put(name, classCommandCommandGroup);
+    public void addClass(String name, CommandGroup.ClassCommandGroup classCommandCommandGroup) {
+        classMap.put(name, classCommandCommandGroup);
     }
 
-    public Map<String, CommandGroup<ClassCommand>> getClassMap() {
+    public Map<String, CommandGroup.ClassCommandGroup> getClassMap() {
         return classMap;
     }
 
@@ -42,7 +44,7 @@ public class XGroup {
         return methodMap.get(id);
     }
 
-    public XObject createOrGetFunction(String owner, String name, String descriptor) {
+    public XObject createFunction(String owner, String name, String descriptor) {
         String id = key(owner, name, descriptor);
         if (!functionMap.containsKey(id)) {
             XObject function = new XObject(owner, name, descriptor);
@@ -56,7 +58,7 @@ public class XGroup {
         return new StringJoiner(":", "[", "]").add(owner).add(name).add(descriptor).toString();
     }
 
-    public XObject createOrGetState(String owner, String name, String descriptor) {
+    public XObject createState(String owner, String name, String descriptor) {
         String id = key(owner, name, descriptor);
         if (!stateMap.containsKey(id)) {
             XObject state = new XObject(owner, name, descriptor);
@@ -67,10 +69,11 @@ public class XGroup {
     }
 
     public XObject createTypeByName(String name) {
-        return createOrGetType("L" + name + ";");
+        return createType("L" + name + ";");
     }
 
-    public XObject createOrGetType(String descriptor) {
+    public XObject createType(String desc) {
+        String descriptor = desc.replace("[", "");
         if (!typeMap.containsKey(descriptor)) {
             XObject type = new XObject(descriptor);
             typeMap.put(descriptor, type);
@@ -93,8 +96,59 @@ public class XGroup {
 
     }
 
+    public void updateInherits() {
+        Map<XObject, Set<XObject>> revertPairMap = new HashMap<>();
+        for (Map.Entry<XObject, Set<XObject>> entry : pairMap.entrySet()) {
+            for (XObject object : entry.getValue()) {
+                if (!revertPairMap.containsKey(object)) {
+                    revertPairMap.put(object, new HashSet<>());
+                }
+                revertPairMap.get(object).add(entry.getKey());
+            }
+        }
+        List<XObject> functionList = new ArrayList<>(revertPairMap.keySet());
+
+        for (XObject object : functionList) {
+            String owner = object.getOwner();
+            String name = object.getName();
+            String descriptor = object.getDescriptor();
+
+            CommandGroup.ClassCommandGroup classCommandGroup = getClassMap().get(owner);
+            if (classCommandGroup != null && !classCommandGroup.getMethodMap().containsKey(name + descriptor)) {
+                LinkedList<String> typeNames = new LinkedList<>();
+                typeNames.add(owner);
+                while (!typeNames.isEmpty()) {
+                    String type = typeNames.pop();
+                    CommandGroup.ClassCommandGroup commandGroup = getClassMap().get(type);
+                    if (commandGroup == null) {
+                        continue;
+                    }
+
+                    if (commandGroup.getDefaultCommand() != null) {
+                        String[] interfaces = commandGroup.getDefaultCommand().getInterfaces();
+                        if (interfaces != null) {
+                            typeNames.addAll(Arrays.asList(interfaces));
+                        }
+                        String superName = commandGroup.getDefaultCommand().getSuperName();
+                        if (superName != null) {
+                            typeNames.add(superName);
+                        }
+                    }
+
+                    if (commandGroup.getMethodMap().containsKey(name + descriptor)) {
+                        ClassCommand.Method method = commandGroup.getMethodMap().get(name + descriptor);
+                        Set<XObject> objects = revertPairMap.get(object);
+                        for (XObject function : objects) {
+                            addPair(function, createFunction(method.getMethod().getOwner(), name, descriptor));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public Set<XObject> relatedReadOnly(XObject obj) {
-        return Collections.unmodifiableSet(pairMap.getOrDefault(obj, Collections.emptySet()));
+        return pairMap.getOrDefault(obj, Collections.emptySet());
     }
 
     public Set<XObject> states(String owner, String name, String descriptor, Set<String> checked) {
@@ -144,13 +198,12 @@ public class XGroup {
         return states;
     }
 
-    public void iterator(Consumer<XObject> c) {
-        for (XObject object : pairMap.keySet()) {
-            c.accept(object);
-        }
-    }
-
     public Stream<XObject> stream() {
         return pairMap.keySet().stream();
+    }
+
+    public boolean isAnnotation(XObject object) {
+        CommandGroup.ClassCommandGroup commandGroup = classMap.get(Type.getType(object.getDescriptor()).getInternalName());
+        return commandGroup != null && commandGroup.isAnnotation();
     }
 }

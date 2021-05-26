@@ -19,7 +19,7 @@ public class CommandTest {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
 
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
+            CommandGroup.ClassCommandGroup commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             for (ClassCommand command : commandGroup.getCommands()) {
                 printCommand(command);
@@ -33,7 +33,7 @@ public class CommandTest {
     public void writeClass() {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
+            CommandGroup.ClassCommandGroup commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             for (ClassCommand classCommand : commandGroup.getCommands()) {
                 if (classCommand instanceof ClassCommand.Default) {

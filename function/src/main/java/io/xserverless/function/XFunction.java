@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 import io.xserverless.function.command.CommandGroup;
-import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.commands.MethodCommand;
 import io.xserverless.function.command.writer.ClassCommandWriter;
 import io.xserverless.function.command.writer.CommandFilter;
@@ -44,16 +43,13 @@ public class XFunction {
                 })
                 .collect(Collectors.toList());
         for (CommandGroup<MethodCommand> commandGroup : commandGroups) {
-            XObject main = group.createOrGetFunction(commandGroup.getOwner(), commandGroup.getName(), commandGroup.getDescriptor());
+            XObject main = group.createFunction(commandGroup.getOwner(), commandGroup.getName(), commandGroup.getDescriptor());
             CommandFilter commandFilter = CommandFilter.createFilter(group, main);
-
-            System.out.println("filters:\n" + commandFilter);
-            System.out.println();
 
             OutputStream outputStream = outputStreamProvider.apply(main);
             if (outputStream != null) {
                 try (JarOutputStream jarOutputStream = new JarOutputStream(outputStream)) {
-                    for (CommandGroup<ClassCommand> classCommandCommandGroup : group.getClassMap().values()) {
+                    for (CommandGroup.ClassCommandGroup classCommandCommandGroup : group.getClassMap().values()) {
                         byte[] bytes = new ClassCommandWriter().write(classCommandCommandGroup, commandFilter);
                         if (bytes.length > 0) {
                             System.out.println(classCommandCommandGroup.getName());

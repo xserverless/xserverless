@@ -2,7 +2,8 @@ package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandGroup;
-import io.xserverless.function.dto.XFunction;
+import io.xserverless.function.dto.XGroup;
+import io.xserverless.function.dto.XObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -10,7 +11,11 @@ import org.objectweb.asm.AnnotationVisitor;
 public interface AnnotationCommand extends Command {
     void write(AnnotationVisitor visitor);
 
-    default void updateFunction(XFunction function) {
+    default void updateFunction(XObject function) {
+    }
+
+    default void updateType(String type, XGroup group) {
+
     }
 
     @Data
@@ -22,6 +27,7 @@ public interface AnnotationCommand extends Command {
         @Override
         public void write(AnnotationVisitor visitor) {
             visitor.visit(name, value);
+log("visitor.visit(name, value);", name, value);
         }
     }
 
@@ -35,6 +41,7 @@ public interface AnnotationCommand extends Command {
         @Override
         public void write(AnnotationVisitor visitor) {
             visitor.visitEnum(name, descriptor, value);
+log("visitor.visitEnum(name, descriptor, value);", name, descriptor, value);
         }
     }
 
@@ -49,8 +56,16 @@ public interface AnnotationCommand extends Command {
         @Override
         public void write(AnnotationVisitor visitor) {
             AnnotationVisitor annotationVisitor = visitor.visitAnnotation(name, descriptor);
+log("AnnotationVisitor annotationVisitor = visitor.visitAnnotation(name, descriptor);", name, descriptor);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        public void updateType(String owner, XGroup group) {
+            group.addPair(group.createTypeByName(owner), group.createOrGetType(descriptor));
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.updateType(owner, group);
             }
         }
     }
@@ -64,8 +79,15 @@ public interface AnnotationCommand extends Command {
         @Override
         public void write(AnnotationVisitor visitor) {
             AnnotationVisitor annotationVisitor = visitor.visitArray(name);
+log("AnnotationVisitor annotationVisitor = visitor.visitArray(name);", name);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        public void updateType(String owner, XGroup group) {
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.updateType(owner, group);
             }
         }
     }
@@ -76,6 +98,7 @@ public interface AnnotationCommand extends Command {
         @Override
         public void write(AnnotationVisitor visitor) {
             visitor.visitEnd();
+log("visitor.visitEnd();");
         }
     }
 }

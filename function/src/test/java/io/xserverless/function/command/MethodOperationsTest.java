@@ -7,7 +7,7 @@ import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
 import org.junit.Test;
 
-import static org.objectweb.asm.Opcodes.ASM7;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class MethodOperationsTest {
     @Test
@@ -15,7 +15,7 @@ public class MethodOperationsTest {
         try (InputStream inputStream = AsmTest.class.getResourceAsStream("/" + AsmTest.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
 
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             for (ClassCommand command : commandGroup.getCommands()) {
                 if (command instanceof ClassCommand.Method) {

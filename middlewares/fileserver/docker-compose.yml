@@ -18,6 +18,8 @@ services:
   storage:
     image: season/fastdfs:1.2
     restart: on-failure
+    depends_on:
+      - tracker
     volumes:
       - ./data/storage:/fastdfs/store_path
     environment:
@@ -33,6 +35,8 @@ services:
   nginx:
     image: season/fastdfs:1.2
     restart: on-failure
+    depends_on:
+      - tracker
     volumes:
       - ./data/storage:/fastdfs/store_path
       - ./config/nginx.conf:/etc/nginx/conf/nginx.conf

@@ -1,15 +1,14 @@
 package io.xserverless.function.command.writer;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import io.xserverless.function.dto.XFunction;
 import io.xserverless.function.dto.XGroup;
 import io.xserverless.function.dto.XObject;
-import io.xserverless.function.dto.XState;
-import io.xserverless.function.dto.XType;
 import org.objectweb.asm.Type;
 
 public class CommandFilter {
@@ -35,25 +34,25 @@ public class CommandFilter {
     private CommandFilter() {
     }
 
-    public void allowType(XType type) {
+    public void allowType(XObject type) {
         Type t = Type.getType(type.getDescriptor());
-        allowTypeSet.add(t.toString());
+        allowTypeSet.add(t.getClassName().replace('.', '/'));
     }
 
-    public void allowFunction(XFunction function) {
+    public void allowFunction(XObject function) {
         String string = new StringJoiner(":", "[", "]").add(function.getOwner()).add(function.getName()).add(function.getDescriptor()).toString();
         allowFunctionSet.add(string);
-        allowTypeSet.add(function.getOwner().replace('/', '.'));
+        allowTypeSet.add(function.getOwner());
     }
 
-    public void allowState(XState state) {
+    public void allowState(XObject state) {
         String string = new StringJoiner(":", "[", "]").add(state.getOwner()).add(state.getName()).add(state.getDescriptor()).toString();
         allowStateSet.add(string);
-        allowTypeSet.add(state.getOwner().replace('/', '.'));
+        allowTypeSet.add(state.getOwner());
     }
 
     public boolean type(String name) {
-        return allowTypeSet.contains(name.replace('/', '.'));
+        return allowTypeSet.contains(name);
     }
 
     public boolean function(String owner, String name, String descriptor) {
@@ -66,41 +65,63 @@ public class CommandFilter {
         return allowStateSet.contains(string);
     }
 
-    public static CommandFilter createFilter(XGroup group, XFunction entry) {
-        Set<XFunction> related = new HashSet<>();
+    public static CommandFilter createFilter(XGroup group, XObject entry) {
+        Set<XObject> related = new HashSet<>();
         entryConstructor(group, entry, related);
         relatedFunctions(group, entry, related);
+        relatedTypes(group, group.createTypeByName(entry.getOwner()), related);
 
         CommandFilter commandFilter = new CommandFilter();
 
-        for (XFunction function : related) {
-            commandFilter.allowFunction(function);
-            for (XObject object : group.relatedReadOnly(function)) {
-                if (object instanceof XType) {
-                    commandFilter.allowType(((XType) object));
-                } else if (object instanceof XState) {
-                    commandFilter.allowState(((XState) object));
+        List<XObject> types = new ArrayList<>();
+
+        for (XObject obj : related) {
+            if (obj.isFunction()) {
+                types.add(group.createTypeByName(obj.getOwner()));
+                for (XObject object : group.relatedReadOnly(obj)) {
+                    if (object.isType()) {
+                        types.add(object);
+                    }
                 }
+            } else if (obj.isType()) {
+                types.add(obj);
             }
         }
 
+        for (XObject type : types) {
+            relatedTypes(group, type, related);
+        }
+
+        for (XObject obj : related) {
+            if (obj.isFunction()) {
+                commandFilter.allowFunction(obj);
+                for (XObject object : group.relatedReadOnly(obj)) {
+                    if (object.isType()) {
+                        commandFilter.allowType(object);
+                    } else if (object.isState()) {
+                        commandFilter.allowState(object);
+                    }
+                }
+            } else if (obj.isType()) {
+                commandFilter.allowType(obj);
+            }
+        }
         return commandFilter;
     }
 
-    private static void entryConstructor(XGroup group, XFunction entry, Set<XFunction> related) {
+    private static void entryConstructor(XGroup group, XObject entry, Set<XObject> related) {
         group.iterator(obj -> {
-            if (obj instanceof XFunction) {
-                XFunction function = (XFunction) obj;
-                if (Objects.equals(function.getOwner(), entry.getOwner()) &&
-                        Objects.equals(function.getName(), "<init>") &&
-                        Objects.equals(function.getDescriptor(), "()V")) {
-                    relatedFunctions(group, function, related);
+            if (obj.isFunction()) {
+                if (Objects.equals(obj.getOwner(), entry.getOwner()) &&
+                        Objects.equals(obj.getName(), "<init>") &&
+                        Objects.equals(obj.getDescriptor(), "()V")) {
+                    relatedFunctions(group, obj, related);
                 }
             }
         });
     }
 
-    private static void relatedFunctions(XGroup group, XFunction entry, Set<XFunction> related) {
+    private static void relatedTypes(XGroup group, XObject entry, Set<XObject> related) {
         if (related.contains(entry)) {
             return;
         }
@@ -110,8 +131,25 @@ public class CommandFilter {
         Set<XObject> relatedSet = group.relatedReadOnly(entry);
         if (relatedSet != null) {
             for (XObject object : relatedSet) {
-                if (object instanceof XFunction) {
-                    relatedFunctions(group, (XFunction) object, related);
+                if (object.isType()) {
+                    relatedTypes(group, object, related);
+                }
+            }
+        }
+    }
+
+    private static void relatedFunctions(XGroup group, XObject entry, Set<XObject> related) {
+        if (related.contains(entry)) {
+            return;
+        }
+
+        related.add(entry);
+
+        Set<XObject> relatedSet = group.relatedReadOnly(entry);
+        if (relatedSet != null) {
+            for (XObject object : relatedSet) {
+                if (object.isFunction()) {
+                    relatedFunctions(group, object, related);
                 }
             }
         }

@@ -7,7 +7,6 @@ import java.util.Set;
 import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.reader.ClassCommandReader;
-import io.xserverless.function.dto.XFunction;
 import io.xserverless.function.dto.XGroup;
 import io.xserverless.function.dto.XObject;
 import io.xserverless.samples.chains.A;
@@ -17,7 +16,7 @@ import io.xserverless.samples.chains.D;
 import io.xserverless.samples.states.Counter;
 import org.junit.Test;
 
-import static org.objectweb.asm.Opcodes.ASM7;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class ChainsConverterTest {
     @Test
@@ -29,7 +28,7 @@ public class ChainsConverterTest {
         readFunctions(D.class, group);
 
         group.iterator(obj -> {
-            if (obj instanceof XFunction) {
+            if (obj.isFunction()) {
                 System.out.println(obj);
             }
         });
@@ -37,8 +36,8 @@ public class ChainsConverterTest {
         System.out.println("----------- function chains --------------");
 
         group.iterator(obj -> {
-            if (obj instanceof XFunction) {
-                outputChains(group, ((XFunction) obj), new HashSet<>());
+            if (obj.isFunction()) {
+                outputChains(group, obj, new HashSet<>());
             }
         });
     }
@@ -49,17 +48,17 @@ public class ChainsConverterTest {
         readFunctions(Counter.class, group);
 
         group.iterator(obj -> {
-            if (obj instanceof XFunction) {
-                System.out.println(((XFunction) obj).getOwner());
-                System.out.println(((XFunction) obj).getName());
-                System.out.println(((XFunction) obj).getDescriptor());
-                System.out.println(group.states(((XFunction) obj).getOwner(), ((XFunction) obj).getName(), ((XFunction) obj).getDescriptor(), new HashSet<>()));
+            if (obj.isFunction()) {
+                System.out.println((obj).getOwner());
+                System.out.println((obj).getName());
+                System.out.println((obj).getDescriptor());
+                System.out.println(group.states((obj).getOwner(), (obj).getName(), (obj).getDescriptor(), new HashSet<>()));
                 System.out.println();
             }
         });
     }
 
-    private void outputChains(XGroup group, XFunction start, Set<XObject> counted) {
+    private void outputChains(XGroup group, XObject start, Set<XObject> counted) {
         if (counted.contains(start)) {
             return;
         }
@@ -72,8 +71,8 @@ public class ChainsConverterTest {
 
         counted.add(start);
         for (XObject object : group.relatedReadOnly(start)) {
-            if (object instanceof XFunction) {
-                outputChains(group, (XFunction) object, counted);
+            if (object.isFunction()) {
+                outputChains(group, object, counted);
             }
         }
         counted.remove(start);
@@ -82,7 +81,7 @@ public class ChainsConverterTest {
     private void readFunctions(Class<?> c, XGroup group) {
         try (InputStream inputStream = c.getResourceAsStream("/" + c.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
             new FunctionConverter().getFunctions(commandGroup, group);
         } catch (Exception e) {
             throw new RuntimeException(e);

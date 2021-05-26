@@ -16,6 +16,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitMainClass(mainClass);
+log("visitor.visitMainClass(mainClass);", mainClass);
         }
     }
 
@@ -27,6 +28,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitPackage(packaze);
+log("visitor.visitPackage(packaze);", packaze);
         }
     }
 
@@ -40,6 +42,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitRequire(module, access, version);
+log("visitor.visitRequire(module, access, version);", module, access, version);
         }
     }
 
@@ -53,6 +56,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitExport(packaze, access, modules);
+log("visitor.visitExport(packaze, access, modules);", packaze, access, modules);
         }
     }
 
@@ -66,6 +70,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitOpen(packaze, access, modules);
+log("visitor.visitOpen(packaze, access, modules);", packaze, access, modules);
         }
     }
 
@@ -77,6 +82,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitUse(service);
+log("visitor.visitUse(service);", service);
         }
     }
 
@@ -89,6 +95,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitProvide(service, providers);
+log("visitor.visitProvide(service, providers);", service, providers);
         }
     }
 
@@ -99,6 +106,7 @@ public interface ModuleCommand extends Command {
         @Override
         public void write(ModuleVisitor visitor) {
             visitor.visitEnd();
+log("visitor.visitEnd();");
         }
     }
 }

@@ -9,17 +9,29 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import io.xserverless.function.command.CommandGroup;
 import io.xserverless.function.command.MethodOperations;
+import io.xserverless.function.command.commands.ClassCommand;
 import io.xserverless.function.command.commands.MethodCommand;
+import org.objectweb.asm.Type;
 
 public class XGroup {
-    private final Map<String, XFunction> functionMap = new HashMap<>();
-    private final Map<String, XState> stateMap = new HashMap<>();
-    private final Map<String, XType> typeMap = new HashMap<>();
+    private final Map<String, XObject> functionMap = new HashMap<>();
+    private final Map<String, XObject> stateMap = new HashMap<>();
+    private final Map<String, XObject> typeMap = new HashMap<>();
     private final Map<XObject, Set<XObject>> pairMap = new HashMap<>();
     private final Map<String, CommandGroup<MethodCommand>> methodMap = new HashMap<>();
+    private final Map<String, CommandGroup<ClassCommand>> classMap = new HashMap<>();
+
+    public void addClass(String name, CommandGroup<ClassCommand> classCommandCommandGroup) {
+         classMap.put(name, classCommandCommandGroup);
+    }
+
+    public Map<String, CommandGroup<ClassCommand>> getClassMap() {
+        return classMap;
+    }
 
     public void putMethodCommandGroup(String owner, String name, String descriptor, CommandGroup<MethodCommand> commandGroup) {
         methodMap.put(key(owner, name, descriptor), commandGroup);
@@ -30,33 +42,37 @@ public class XGroup {
         return methodMap.get(id);
     }
 
-    public XFunction createOrGetFunction(String owner, String name, String descriptor) {
+    public XObject createOrGetFunction(String owner, String name, String descriptor) {
         String id = key(owner, name, descriptor);
         if (!functionMap.containsKey(id)) {
-            XFunction function = new XFunction(owner, name, descriptor);
+            XObject function = new XObject(owner, name, descriptor);
             functionMap.put(id, function);
             pairMap.put(function, new HashSet<>());
         }
         return functionMap.get(id);
     }
 
-    private String key(String owner, String name, String descriptor) {
+    public String key(String owner, String name, String descriptor) {
         return new StringJoiner(":", "[", "]").add(owner).add(name).add(descriptor).toString();
     }
 
-    public XState createOrGetState(String owner, String name, String descriptor) {
+    public XObject createOrGetState(String owner, String name, String descriptor) {
         String id = key(owner, name, descriptor);
         if (!stateMap.containsKey(id)) {
-            XState state = new XState(owner, name, descriptor);
+            XObject state = new XObject(owner, name, descriptor);
             stateMap.put(id, state);
             pairMap.put(state, new HashSet<>());
         }
         return stateMap.get(id);
     }
 
-    public XType createOrGetType(String descriptor) {
+    public XObject createTypeByName(String name) {
+        return createOrGetType("L" + name + ";");
+    }
+
+    public XObject createOrGetType(String descriptor) {
         if (!typeMap.containsKey(descriptor)) {
-            XType type = new XType(descriptor);
+            XObject type = new XObject(descriptor);
             typeMap.put(descriptor, type);
             pairMap.put(type, new HashSet<>());
         }
@@ -68,13 +84,20 @@ public class XGroup {
             pairMap.put(obj, new HashSet<>());
         }
         pairMap.get(obj).add(related);
+
+        if (related.isFunction()) {
+            Type methodType = Type.getMethodType(related.getDescriptor());
+
+            methodType.getReturnType();
+        }
+
     }
 
     public Set<XObject> relatedReadOnly(XObject obj) {
         return Collections.unmodifiableSet(pairMap.getOrDefault(obj, Collections.emptySet()));
     }
 
-    public Set<XState> states(String owner, String name, String descriptor, Set<String> checked) {
+    public Set<XObject> states(String owner, String name, String descriptor, Set<String> checked) {
         if (checked.contains(key(owner, name, descriptor))) {
             // checked
             return Collections.emptySet();
@@ -83,15 +106,15 @@ public class XGroup {
             // constructors
             return Collections.emptySet();
         }
-        Set<XObject> objects = pairMap.get(new XFunction(owner, name, descriptor));
+        Set<XObject> objects = pairMap.get(new XObject(owner, name, descriptor));
         if (objects == null) {
             // rt.jar
             return Collections.emptySet();
         }
-        Set<XState> states = new HashSet<>();
+        Set<XObject> states = new HashSet<>();
         for (XObject object : objects) {
-            if (object instanceof XState) {
-                states.add(((XState) object));
+            if (object.isState()) {
+                states.add((object));
             }
         }
         if (!states.isEmpty()) {
@@ -125,5 +148,9 @@ public class XGroup {
         for (XObject object : pairMap.keySet()) {
             c.accept(object);
         }
+    }
+
+    public Stream<XObject> stream() {
+        return pairMap.keySet().stream();
     }
 }

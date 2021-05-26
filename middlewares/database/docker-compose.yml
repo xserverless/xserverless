@@ -12,7 +12,7 @@ services:
       - MYSQL_USER=xserverless
       - MYSQL_PASSOWRD=Abc123++
     ports:
-      - 3298:3306
+      - 3306:3306
     networks:
       db_network:
         ipv4_address: 172.200.0.2

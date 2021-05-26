@@ -9,14 +9,14 @@ import io.xserverless.function.dto.XGroup;
 import io.xserverless.samples.fibonacci.Fibonacci;
 import org.junit.Test;
 
-import static org.objectweb.asm.Opcodes.ASM7;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class XFunctionConverterTest {
     @Test
     public void testConverter() {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
             XGroup group = new XGroup();
             new FunctionConverter().getFunctions(commandGroup, group);
 

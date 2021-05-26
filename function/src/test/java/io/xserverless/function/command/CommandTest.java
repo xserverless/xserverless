@@ -11,7 +11,7 @@ import io.xserverless.function.command.writer.CommandFilter;
 import io.xserverless.samples.fibonacci.Fibonacci;
 import org.junit.Test;
 
-import static org.objectweb.asm.Opcodes.ASM7;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class CommandTest {
     @Test
@@ -19,7 +19,7 @@ public class CommandTest {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
 
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             for (ClassCommand command : commandGroup.getCommands()) {
                 printCommand(command);
@@ -33,7 +33,7 @@ public class CommandTest {
     public void writeClass() {
         try (InputStream inputStream = Fibonacci.class.getResourceAsStream("/" + Fibonacci.class.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM7);
+            CommandGroup<ClassCommand> commandGroup = ClassCommandReader.read(inputStream, ASM9);
 
             for (ClassCommand classCommand : commandGroup.getCommands()) {
                 if (classCommand instanceof ClassCommand.Default) {

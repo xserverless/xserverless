@@ -8,3 +8,6 @@
 
 /middlewares/fileserver/data/*
 !/middlewares/fileserver/data/.gitkeep
+
+/fileserver/data/
+!/fileserver/data/.gitkeep

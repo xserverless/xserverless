@@ -18,7 +18,7 @@ import io.xserverless.samples.chains.C;
 import io.xserverless.samples.chains.D;
 import org.junit.Test;
 
-import static org.objectweb.asm.Opcodes.ASM7;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class CommandFilterTest {
     @Test
@@ -54,7 +54,7 @@ public class CommandFilterTest {
     private CommandGroup<ClassCommand> readFunctions(Class<?> c) {
         try (InputStream inputStream = c.getResourceAsStream("/" + c.getName().replace('.', '/') + ".class")) {
             assert inputStream != null;
-            return ClassCommandReader.read(inputStream, ASM7);
+            return ClassCommandReader.read(inputStream, ASM9);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

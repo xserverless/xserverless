@@ -12,12 +12,10 @@ import com.github.tobato.fastdfs.domain.fdfs.StorageState;
 import com.github.tobato.fastdfs.service.TrackerClient;
 
 public class XTrackerClientWrapper implements TrackerClient {
-    private XFdfsConfig config;
     private TrackerClient trackerClient;
     private Map<String, Map.Entry<String, Integer>> map;
 
     public XTrackerClientWrapper(XFdfsConfig config, TrackerClient trackerClient) {
-        this.config = config;
         this.trackerClient = trackerClient;
 
         map = new HashMap<>();

@@ -2,9 +2,10 @@ package io.xserverless.function.command.commands;
 
 import io.xserverless.function.command.Command;
 import io.xserverless.function.command.CommandGroup;
+import io.xserverless.function.command.reader.SignatureCommandReader;
 import io.xserverless.function.command.writer.CommandFilter;
-import io.xserverless.function.dto.XFunction;
 import io.xserverless.function.dto.XGroup;
+import io.xserverless.function.dto.XObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectweb.asm.AnnotationVisitor;
@@ -16,9 +17,14 @@ import org.objectweb.asm.RecordComponentVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
 
+import static org.objectweb.asm.Opcodes.ASM9;
+
 public interface ClassCommand extends Command {
 
     void write(ClassWriter classWriter, CommandFilter filter);
+
+    default void updateType(String owner, XGroup group) {
+    }
 
     @Data
     @AllArgsConstructor
@@ -33,6 +39,21 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visit(version, access, name, signature, superName, interfaces);
+            log("classWriter.visit(version, access, name, signature, superName, interfaces);", version, access, name, signature, superName, interfaces);
+        }
+
+        public void updateType(String owner, XGroup group) {
+            if (superName != null) {
+                group.addPair(group.createTypeByName(owner), group.createTypeByName(superName));
+            }
+
+            if (interfaces != null) {
+                for (String s : interfaces) {
+                    group.addPair(group.createTypeByName(owner), group.createTypeByName(s));
+                }
+            }
+
+            new SignatureCommandReader(ASM9).updateType(signature, owner, group);
         }
     }
 
@@ -45,6 +66,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitSource(source, debug);
+            log("classWriter.visitSource(source, debug);", source, debug);
         }
     }
 
@@ -59,6 +81,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             ModuleVisitor moduleVisitor = classWriter.visitModule(name, access, version);
+            log("ModuleVisitor moduleVisitor = classWriter.visitModule(name, access, version);", name, access, version);
             for (ModuleCommand command : module.getCommands()) {
                 command.write(moduleVisitor);
             }
@@ -73,6 +96,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitNestHost(nestHost);
+            log("classWriter.visitNestHost(nestHost);", nestHost);
         }
     }
 
@@ -86,6 +110,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitOuterClass(owner, name, descriptor);
+            log("classWriter.visitOuterClass(owner, name, descriptor);", owner, name, descriptor);
         }
     }
 
@@ -99,8 +124,16 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             AnnotationVisitor annotationVisitor = classWriter.visitAnnotation(descriptor, visible);
+            log("AnnotationVisitor annotationVisitor = classWriter.visitAnnotation(descriptor, visible);", descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        public void updateType(String owner, XGroup group) {
+            group.addPair(group.createTypeByName(owner), group.createOrGetType(descriptor));
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.updateType(owner, group);
             }
         }
     }
@@ -117,8 +150,16 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             AnnotationVisitor annotationVisitor = classWriter.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+            log("AnnotationVisitor annotationVisitor = classWriter.visitTypeAnnotation(typeRef, typePath, descriptor, visible);", typeRef, typePath, descriptor, visible);
             for (AnnotationCommand command : annotation.getCommands()) {
                 command.write(annotationVisitor);
+            }
+        }
+
+        public void updateType(String owner, XGroup group) {
+            group.addPair(group.createTypeByName(owner), group.createOrGetType(descriptor));
+            for (AnnotationCommand command : annotation.getCommands()) {
+                command.updateType(owner, group);
             }
         }
     }
@@ -131,6 +172,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitAttribute(attribute);
+            log("classWriter.visitAttribute(attribute);", attribute);
         }
     }
 
@@ -142,6 +184,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitNestMember(nestMember);
+            log("classWriter.visitNestMember(nestMember);", nestMember);
         }
     }
 
@@ -153,6 +196,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitPermittedSubclass(permittedSubclass);
+            log("classWriter.visitPermittedSubclass(permittedSubclass);", permittedSubclass);
         }
     }
 
@@ -167,6 +211,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitInnerClass(name, outerName, innerName, access);
+            log("classWriter.visitInnerClass(name, outerName, innerName, access);", name, outerName, innerName, access);
         }
     }
 
@@ -181,9 +226,15 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             RecordComponentVisitor recordComponentVisitor = classWriter.visitRecordComponent(name, descriptor, signature);
+            log("RecordComponentVisitor recordComponentVisitor = classWriter.visitRecordComponent(name, descriptor, signature);", name, descriptor, signature);
             for (RecordComponentCommand command : recordComponent.getCommands()) {
                 command.write(recordComponentVisitor);
             }
+        }
+
+        @Override
+        public void updateType(String owner, XGroup group) {
+            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, group.createOrGetState(owner, name, descriptor), group);
         }
     }
 
@@ -201,10 +252,16 @@ public interface ClassCommand extends Command {
         public void write(ClassWriter classWriter, CommandFilter filter) {
             if (filter.state(field.getOwner(), field.getName(), field.getDescriptor())) {
                 FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);
+                log("    FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);", access, name, descriptor, signature, value);
                 for (FieldCommand fieldCommand : field.getCommands()) {
                     fieldCommand.write(fieldVisitor);
                 }
             }
+        }
+
+        @Override
+        public void updateType(String owner, XGroup group) {
+            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, group.createOrGetState(owner, name, descriptor), group);
         }
     }
 
@@ -222,14 +279,15 @@ public interface ClassCommand extends Command {
         public void write(ClassWriter classWriter, CommandFilter filter) {
             if (filter.function(method.getOwner(), method.getName(), method.getDescriptor())) {
                 MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);
+                log("    MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);", access, name, descriptor, signature, exceptions);
                 for (MethodCommand methodCommand : method.getCommands()) {
                     methodCommand.write(methodVisitor);
                 }
             }
         }
 
-        public XFunction getFunction(String owner, XGroup group) {
-            XFunction function = group.createOrGetFunction(owner, name, descriptor);
+        public void updateType(String owner, XGroup group) {
+            XObject function = group.createOrGetFunction(owner, name, descriptor);
             group.putMethodCommandGroup(owner, name, descriptor, method);
 
             Type returnType = Type.getReturnType(descriptor);
@@ -243,7 +301,8 @@ public interface ClassCommand extends Command {
             for (MethodCommand methodCommand : method.getCommands()) {
                 methodCommand.updateFunction(function, group);
             }
-            return function;
+
+            new SignatureCommandReader(ASM9).updateFunctionAndState(signature, function, group);
         }
     }
 
@@ -253,6 +312,7 @@ public interface ClassCommand extends Command {
         @Override
         public void write(ClassWriter classWriter, CommandFilter filter) {
             classWriter.visitEnd();
+            log("classWriter.visitEnd();");
         }
     }
 }

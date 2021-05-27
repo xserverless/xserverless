@@ -11,7 +11,7 @@ public class XRegister {
         classLoaderMap.put(key, classLoader);
     }
 
-    public XClassLoader getClassLoader(File dir) {
+    public XClassLoader getClassLoader(File dir, String c) {
         String path = dir.getAbsolutePath();
 
         XClassLoader classLoader = classLoaderMap.get(path);
@@ -19,7 +19,7 @@ public class XRegister {
             synchronized (Integer.valueOf(path.hashCode())) {
                 classLoader = classLoaderMap.get(path);
                 if (classLoader == null) {
-                    classLoader = new XClassLoader(dir, this);
+                    classLoader = new XClassLoader(this, dir, c);
                 }
             }
         }

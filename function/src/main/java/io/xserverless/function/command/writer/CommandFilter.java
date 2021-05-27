@@ -125,6 +125,14 @@ public class CommandFilter {
             return Collections.emptySet();
         }
 
+        // exclude spring frameworks
+        if (!object.isType() && object.getOwner() != null && object.getOwner().startsWith("org/springframework")) {
+            return Collections.emptySet();
+        }
+        if (object.isType() && object.getDescriptor().startsWith("Lorg/springframework")) {
+            return Collections.emptySet();
+        }
+
         related.add(object);
         return group.relatedReadOnly(object);
     }

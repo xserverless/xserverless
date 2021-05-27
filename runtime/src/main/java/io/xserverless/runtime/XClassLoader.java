@@ -2,7 +2,6 @@ package io.xserverless.runtime;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,36 +9,47 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
+
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class XClassLoader extends ClassLoader {
-    private Map<String, Class<?>> classMap = new HashMap<>();
+    private AnnotationConfigApplicationContext context;
     private File dir;
+    private Class<?> clazz = null;
+    private Method method = null;
 
-    public XClassLoader(File dir, XRegister register) {
+    public XClassLoader(XRegister register, File dir, String c) {
         this.dir = dir;
         loadClasses(dir);
+
+        context = new AnnotationConfigApplicationContext();
+        context.setClassLoader(this);
+        context.scan(c.substring(0, c.lastIndexOf(".")));
+        context.refresh();
+
+        try {
+            clazz = loadClass(c);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         register.register(dir.getAbsolutePath(), this);
     }
 
-    public Object invoke(String mainClass, String method, Object... args) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        if (!classMap.containsKey(mainClass)) {
-            classMap.put(mainClass, loadClass(mainClass));
+    public Object invoke(String m, Object... args) throws Exception {
+        if (method == null) {
+            if (args != null) {
+                Class<?>[] argTypes = new Class[args.length];
+                for (int i = 0; i < args.length; i++) {
+                    argTypes[i] = args[i].getClass();
+                }
+                method = clazz.getMethod(m, argTypes);
+            } else {
+                method = clazz.getMethod(m);
+            }
         }
-        Class<?> clazz = classMap.get(mainClass);
-        Object o = clazz.getConstructor().newInstance();
-
-        Method clazzMethod;
-        if (args != null) {
-            Class<?>[] argTypes = new Class[args.length];
-            clazzMethod = clazz.getMethod(method, argTypes);
-        } else {
-            clazzMethod = clazz.getMethod(method);
-        }
-
-        return clazzMethod.invoke(o, args);
+        return method.invoke(context.getBean(clazz), args);
     }
 
     private void loadClasses(File dir) {

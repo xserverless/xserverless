@@ -4,16 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class XClassLoader extends ClassLoader {
     private Map<String, Class<?>> classMap = new HashMap<>();
+    private File dir;
 
     public XClassLoader(File dir, XRegister register) {
+        this.dir = dir;
         loadClasses(dir);
         register.register(dir.getAbsolutePath(), this);
     }
@@ -66,5 +72,27 @@ public class XClassLoader extends ClassLoader {
                 }
             }
         }
+    }
+
+    @Override
+    protected URL findResource(String name) {
+        File file = new File(dir, name);
+        if (file.exists()) {
+            try {
+                return file.toPath().toUri().toURL();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        }
+        return super.getResource(name);
+    }
+
+    @Override
+    protected Enumeration<URL> findResources(String name) throws IOException {
+        URL url = findResource(name);
+        if (url != null) {
+            return Collections.enumeration(Collections.singletonList(url));
+        }
+        return super.findResources(name);
     }
 }

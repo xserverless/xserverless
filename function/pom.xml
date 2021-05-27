@@ -26,10 +26,6 @@
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
             <artifactId>asm-util</artifactId>
         </dependency>
 

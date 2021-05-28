@@ -19,6 +19,7 @@ import io.xserverless.function.command.writer.CommandFilter;
 import io.xserverless.function.converter.FunctionConverter;
 import io.xserverless.function.dto.XGroup;
 import io.xserverless.function.dto.XObject;
+import org.slf4j.LoggerFactory;
 
 public class XFunction {
     public void analysis(InputStream jarInputStream, Consumer<Map.Entry<XObject, byte[]>> consumer, FunctionFilter functionFilter) throws IOException {
@@ -48,12 +49,13 @@ public class XFunction {
             XObject main = group.createFunction(commandGroup.getOwner(), commandGroup.getName(), commandGroup.getDescriptor());
             CommandFilter commandFilter = CommandFilter.createFilter(group, main);
 
+            LoggerFactory.getLogger(getClass()).info("analysis entry: {}", main.getName());
+
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             try (JarOutputStream jarOutputStream = new JarOutputStream(stream)) {
                 for (CommandGroup.ClassCommandGroup classCommandCommandGroup : group.getClassMap().values()) {
                     byte[] bytes = new ClassCommandWriter().write(classCommandCommandGroup, commandFilter);
                     if (bytes.length > 0) {
-                        System.out.println(classCommandCommandGroup.getName());
                         ZipEntry zipEntry = new ZipEntry(classCommandCommandGroup.getName() + ".class");
                         jarOutputStream.putNextEntry(zipEntry);
                         jarOutputStream.write(bytes);
@@ -64,6 +66,8 @@ public class XFunction {
             }
 
             consumer.accept(new AbstractMap.SimpleEntry<>(main, stream.toByteArray()));
+
+            LoggerFactory.getLogger(getClass()).info("analysis entry ended: {}", main.getName());
         }
     }
 }

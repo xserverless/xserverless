@@ -42,13 +42,13 @@ public class CommandFilter {
     public void allowFunction(XObject function) {
         String string = new StringJoiner(":", "[", "]").add(function.getOwner()).add(function.getName()).add(function.getDescriptor()).toString();
         allowFunctionSet.add(string);
-        allowTypeSet.add(function.getOwner());
+//        allowTypeSet.add(function.getOwner());
     }
 
     public void allowState(XObject state) {
         String string = new StringJoiner(":", "[", "]").add(state.getOwner()).add(state.getName()).add(state.getDescriptor()).toString();
         allowStateSet.add(string);
-        allowTypeSet.add(state.getOwner());
+//        allowTypeSet.add(state.getOwner());
     }
 
     public boolean type(String name) {
@@ -147,6 +147,9 @@ public class CommandFilter {
             return Collections.emptySet();
         }
         if (object.isType() && object.getDescriptor().startsWith("Lorg/springframework")) {
+            return Collections.emptySet();
+        }
+        if (object.isType() && object.getDescriptor().startsWith("Ljavax/")) {
             return Collections.emptySet();
         }
 

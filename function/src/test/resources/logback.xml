@@ -15,4 +15,6 @@
         <level value="DEBUG" />
         <appender-ref ref="STDOUT" />
     </root>
+
+    <logger name="io.xserverless.function.command" level="INFO"></logger>
 </configuration>

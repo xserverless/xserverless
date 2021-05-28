@@ -71,6 +71,7 @@ public class AsmTest {
     }
 
 
+    // unzip jar
     @Test
     public void analysisSpringBootJarUnzipJar() throws IOException {
         String jarPath = "../../dev-center/target/dev-center-0.0.1-SNAPSHOT.jar";
@@ -88,11 +89,17 @@ public class AsmTest {
         }
     }
 
+    // read unzipped jar
     @Test
     public void analysisSpringBootJarReadJars() throws IOException {
         File tempJar = new File("./target/tempJar");
         XGroup group = new XGroup();
+
+        System.out.println("read jar");
+
         new FunctionConverter().readJar(group, tempJar);
+
+        System.out.println("output");
 
         File tempRoot = new File("./target/tempOutputFile");
         FileUtils.deleteDirectory(tempRoot);

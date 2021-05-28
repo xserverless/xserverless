@@ -7,6 +7,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import io.xserverless.function.command.CommandGroup;
+import io.xserverless.function.command.commands.ClassCommand;
+import io.xserverless.function.command.commands.FieldCommand;
 import io.xserverless.function.dto.XGroup;
 import io.xserverless.function.dto.XObject;
 import org.objectweb.asm.Type;
@@ -86,14 +89,12 @@ public class CommandFilter {
 
             // all related
             Set<XObject> objects = related(group, object, related);
-            if (objects != null) {
-                for (XObject obj : objects) {
-                    if (obj.isFunction()) {
-                        XObject type = group.createTypeByName(obj.getOwner());
-                        stack.add(type);
-                    }
-                    stack.add(obj);
+            for (XObject obj : objects) {
+                if (obj.isFunction()) {
+                    XObject type = group.createTypeByName(obj.getOwner());
+                    stack.add(type);
                 }
+                stack.add(obj);
             }
             // whole type
             if (object.isType()) {
@@ -121,6 +122,17 @@ public class CommandFilter {
                     stack.add(group.createFunction(ownerName, "<init>", "()V"));
                 }
             }
+
+
+            if (stack.isEmpty()) {
+                // implemented methods
+                related.stream()
+                        .filter(XObject::isFunction)
+                        .flatMap(func -> group.findImplementFunctions(func).stream())
+                        .filter(func -> related.contains(group.createTypeByName(func.getOwner())))
+                        .filter(func -> !related.contains(func))
+                        .forEach(stack::add);
+            }
         }
 
         CommandFilter commandFilter = new CommandFilter();
@@ -137,24 +149,56 @@ public class CommandFilter {
         return commandFilter;
     }
 
+    private static final String[] IGNORED_PREFIXES = new String[]{
+            "org/springframework",
+            "java/",
+            "javax/"
+    };
+
     private static Set<XObject> related(XGroup group, XObject object, Set<XObject> related) {
         if (related.contains(object)) {
             return Collections.emptySet();
         }
 
-        // exclude spring frameworks
-        if (!object.isType() && object.getOwner() != null && object.getOwner().startsWith("org/springframework")) {
-            return Collections.emptySet();
+        // exclude ignored type prefixes
+        if (!object.isType() && object.getOwner() != null) {
+            for (String prefix : IGNORED_PREFIXES) {
+                if (object.getOwner().startsWith(prefix)) {
+                    return Collections.emptySet();
+                }
+            }
         }
-        if (object.isType() && object.getDescriptor().startsWith("Lorg/springframework")) {
-            return Collections.emptySet();
-        }
-        if (object.isType() && object.getDescriptor().startsWith("Ljavax/")) {
-            return Collections.emptySet();
+        if (object.isType()) {
+            for (String prefix : IGNORED_PREFIXES) {
+                if (object.getDescriptor().startsWith("L" + prefix)) {
+                    return Collections.emptySet();
+                }
+            }
         }
 
         related.add(object);
-        return group.relatedReadOnly(object);
+
+        // relates
+        Set<XObject> set = new HashSet<>(group.relatedReadOnly(object));
+
+        // implements autowired
+        if (object.isState()) {
+            CommandGroup.ClassCommandGroup commandGroup = group.getClassMap().get(object.getOwner());
+
+            if (commandGroup.getCommands().stream()
+                    .filter(c -> c instanceof ClassCommand.Field)
+                    .map(classCommand -> ((ClassCommand.Field) classCommand))
+                    .filter(field -> Objects.equals(object.getName(), field.getName()))
+                    .flatMap(field -> field.getField().getCommands().stream())
+                    .filter(fieldCommand -> fieldCommand instanceof FieldCommand.Annotation)
+                    .map(fieldCommand -> ((FieldCommand.Annotation) fieldCommand))
+                    .anyMatch(annotation -> Objects.equals("Lorg/springframework/beans/factory/annotation/Autowired;", annotation.getDescriptor()))) {
+                XObject type = group.createType(object.getDescriptor());
+                set.addAll(group.findImplementType(type));
+            }
+        }
+
+        return set;
     }
 
     public String toString() {

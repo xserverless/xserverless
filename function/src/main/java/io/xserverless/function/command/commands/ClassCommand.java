@@ -252,7 +252,7 @@ public interface ClassCommand extends Command {
         public void write(ClassWriter classWriter, CommandFilter filter) {
             if (filter.state(field.getOwner(), field.getName(), field.getDescriptor())) {
                 FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);
-                log("    FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);", access, name, descriptor, signature, value);
+                log("FieldVisitor fieldVisitor = classWriter.visitField(access, name, descriptor, signature, value);", access, name, descriptor, signature, value);
                 for (FieldCommand fieldCommand : field.getCommands()) {
                     fieldCommand.write(fieldVisitor);
                 }
@@ -279,7 +279,7 @@ public interface ClassCommand extends Command {
         public void write(ClassWriter classWriter, CommandFilter filter) {
             if (filter.function(method.getOwner(), method.getName(), method.getDescriptor())) {
                 MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);
-                log("    MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);", access, name, descriptor, signature, exceptions);
+                log("MethodVisitor methodVisitor = classWriter.visitMethod(access, name, descriptor, signature, exceptions);", access, name, descriptor, signature, exceptions);
                 for (MethodCommand methodCommand : method.getCommands()) {
                     methodCommand.write(methodVisitor);
                 }

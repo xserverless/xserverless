@@ -23,12 +23,44 @@ public class XGroup {
     private final Map<String, XObject> functionMap = new HashMap<>();
     private final Map<String, XObject> stateMap = new HashMap<>();
     private final Map<String, XObject> typeMap = new HashMap<>();
+
     private final Map<XObject, Set<XObject>> pairMap = new HashMap<>();
     private final Map<String, CommandGroup<MethodCommand>> methodMap = new HashMap<>();
     private final Map<String, CommandGroup.ClassCommandGroup> classMap = new HashMap<>();
 
+    private final Map<String, Set<String>> subClassMap = new HashMap<>();
+    private final Map<String, Set<String>> parentClassMap = new HashMap<>();
+
     public void addClass(String name, CommandGroup.ClassCommandGroup classCommandCommandGroup) {
         classMap.put(name, classCommandCommandGroup);
+
+        if (!parentClassMap.containsKey(name)) {
+            parentClassMap.put(name, new HashSet<>());
+        }
+
+        ClassCommand.Default defaultCommand = classCommandCommandGroup.getDefaultCommand();
+        if (defaultCommand != null) {
+            String superName = defaultCommand.getSuperName();
+            if (superName != null) {
+                if (!subClassMap.containsKey(superName)) {
+                    subClassMap.put(superName, new HashSet<>());
+                }
+                subClassMap.get(superName).add(name);
+            }
+
+            parentClassMap.get(name).add(superName);
+
+            String[] interfaces = defaultCommand.getInterfaces();
+            if (interfaces != null) {
+                for (String s : interfaces) {
+                    if (!subClassMap.containsKey(s)) {
+                        subClassMap.put(s, new HashSet<>());
+                    }
+                    subClassMap.get(s).add(name);
+                    parentClassMap.get(name).add(s);
+                }
+            }
+        }
     }
 
     public Map<String, CommandGroup.ClassCommandGroup> getClassMap() {
@@ -80,6 +112,103 @@ public class XGroup {
             pairMap.put(type, new HashSet<>());
         }
         return typeMap.get(descriptor);
+    }
+
+    public final static Set<String> COMPONENT_ANNOTATIONS = new HashSet<String>() {
+        {
+            addAll(Arrays.asList(
+                    "Lorg/springframework/stereotype/Component;",
+                    "Lorg/springframework/stereotype/Controller;",
+                    "Lorg/springframework/stereotype/Repository;",
+                    "Lorg/springframework/stereotype/Service;"));
+        }
+    };
+
+    public List<XObject> findImplementFunctions(XObject function) {
+        List<XObject> list = new ArrayList<>();
+
+        String owner = function.getOwner();
+        Set<String> classNames = findAllSubClasses(owner);
+        classNames.addAll(findAllParentClasses(owner));
+        for (String className : classNames) {
+            if (className.equals(function.getOwner())) {
+                continue;
+            }
+            String key = key(className, function.getName(), function.getDescriptor());
+            if (functionMap.containsKey(key)) {
+                list.add(functionMap.get(key));
+            }
+        }
+
+        return list;
+    }
+
+    public List<XObject> findImplementType(XObject type) {
+        List<XObject> list = new ArrayList<>();
+
+        if (type.getName().startsWith("java.")) {
+            return Collections.emptyList();
+        }
+
+        Set<String> subClassNames = findAllSubClasses(type.getName());
+
+        for (String className : subClassNames) {
+            CommandGroup.ClassCommandGroup commandGroup = classMap.get(className);
+            if (commandGroup != null) {
+                if (commandGroup.getCommands().stream()
+                        .filter(classCommand -> classCommand instanceof ClassCommand.Annotation)
+                        .anyMatch(classCommand -> {
+                            return COMPONENT_ANNOTATIONS.contains(((ClassCommand.Annotation) classCommand).getDescriptor());
+                        })) {
+                    list.add(createTypeByName(commandGroup.getName()));
+                }
+            }
+        }
+
+        return list;
+    }
+
+    private Set<String> findAllSubClasses(String name) {
+        // sub class names
+        Set<String> subClassNames = new HashSet<>();
+        LinkedList<String> stack = new LinkedList<>();
+        stack.add(name);
+
+        while (!stack.isEmpty()) {
+            String cname = stack.pop();
+            if (subClassNames.contains(cname)) {
+                continue;
+            }
+
+            subClassNames.add(cname);
+
+            if (subClassMap.containsKey(cname)) {
+                subClassNames.addAll(subClassMap.get(cname));
+                stack.addAll(subClassMap.get(cname));
+            }
+        }
+        return subClassNames;
+    }
+    private Set<String> findAllParentClasses(String name) {
+        // sub class names
+        Set<String> parentClassSet = new HashSet<>();
+        LinkedList<String> stack = new LinkedList<>();
+        stack.add(name);
+
+        while (!stack.isEmpty()) {
+            String cname = stack.pop();
+            if (parentClassSet.contains(cname)) {
+                continue;
+            }
+
+            parentClassSet.add(cname);
+
+            if (parentClassMap.containsKey(cname)) {
+                parentClassSet.addAll(parentClassMap.get(cname));
+                stack.addAll(parentClassMap.get(cname));
+            }
+        }
+        return parentClassSet;
     }
 
     public void addPair(XObject obj, XObject related) {

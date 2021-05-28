@@ -2,9 +2,11 @@ package io.xserverless.function.command;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import io.xserverless.function.command.commands.ClassCommand;
 import lombok.Data;
@@ -27,6 +29,8 @@ public class CommandGroup<C extends Command> {
         private Map<String, ClassCommand.Method> methodMap = new HashMap<>();
 
         private boolean isAnnotation;
+
+        private Set<String> annotations = new HashSet<>();
 
         @Override
         public void add(ClassCommand classCommand) {
@@ -51,6 +55,10 @@ public class CommandGroup<C extends Command> {
             if (classCommand instanceof ClassCommand.Method) {
                 ClassCommand.Method method = (ClassCommand.Method) classCommand;
                 methodMap.put(method.getName() + method.getDescriptor(), method);
+            }
+
+            if (classCommand instanceof ClassCommand.Annotation) {
+                annotations.add(((ClassCommand.Annotation) classCommand).getDescriptor());
             }
         }
     }

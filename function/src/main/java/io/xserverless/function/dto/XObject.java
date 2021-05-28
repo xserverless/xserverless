@@ -3,6 +3,7 @@ package io.xserverless.function.dto;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.objectweb.asm.Type;
 
 @Getter
 @EqualsAndHashCode
@@ -41,7 +42,7 @@ public class XObject {
 
     public XObject(String descriptor) {
         this.owner = null;
-        this.name = null;
+        this.name = Type.getType(descriptor).getInternalName();
         this.descriptor = descriptor;
         type = "type";
     }

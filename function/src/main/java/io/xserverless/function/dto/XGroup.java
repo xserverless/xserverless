@@ -335,4 +335,9 @@ public class XGroup {
         CommandGroup.ClassCommandGroup commandGroup = classMap.get(Type.getType(object.getDescriptor()).getInternalName());
         return commandGroup != null && commandGroup.isAnnotation();
     }
+
+    public boolean isEntity(XObject object) {
+        CommandGroup.ClassCommandGroup commandGroup = classMap.get(Type.getType(object.getDescriptor()).getInternalName());
+        return commandGroup != null && commandGroup.getAnnotations().contains("Ljavax/persistence/Entity;");
+    }
 }

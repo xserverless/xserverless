@@ -106,6 +106,13 @@ public class CommandFilter {
                             .filter(obj -> Objects.equals(ownerName, obj.getOwner()))
                             .forEach(stack::add);
                 }
+                // entity
+                if (group.isEntity(object)) {
+                    group.stream().filter(obj -> !obj.isType())
+                            .filter(obj -> !related.contains(obj))
+                            .filter(obj -> Objects.equals(ownerName, obj.getOwner()))
+                            .forEach(stack::add);
+                }
                 // constructors
                 boolean constructorExists = false;
                 for (XObject obj : related) {

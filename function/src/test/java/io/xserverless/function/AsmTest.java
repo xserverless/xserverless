@@ -2,7 +2,6 @@ package io.xserverless.function;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,16 +98,14 @@ public class AsmTest {
         FileUtils.deleteDirectory(tempRoot);
 
         List<File> files = new ArrayList<>();
-        new XFunction().analysis(s -> {
-            File file = new File(tempRoot, s.getName() + "_" + files.size() + ".zip");
+        new XFunction().analysis(entry -> {
+            File file = new File(tempRoot, entry.getKey().getName() + "_" + files.size() + ".zip");
             files.add(file);
-            file.getParentFile().mkdirs();
             try {
-                return new FileOutputStream(file);
-            } catch (FileNotFoundException e) {
+                FileUtils.writeByteArrayToFile(file, entry.getValue());
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            return null;
         }, FunctionFilter.REQUEST_MAPPING_FILTER, group);
 
         unzipJars(files);
@@ -164,16 +161,14 @@ public class AsmTest {
         List<File> files = new ArrayList<>();
 
         try (FileInputStream fis = new FileInputStream(jar)) {
-            new XFunction().analysis(fis, s -> {
-                File file = new File(tempRoot, s.getName() + "_" + files.size() + ".zip");
+            new XFunction().analysis(fis, entry -> {
+                File file = new File(tempRoot, entry.getKey().getName() + "_" + files.size() + ".zip");
                 files.add(file);
-                file.getParentFile().mkdirs();
                 try {
-                    return new FileOutputStream(file);
-                } catch (FileNotFoundException e) {
+                    FileUtils.writeByteArrayToFile(file, entry.getValue());
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return null;
             }, FunctionFilter.REQUEST_MAPPING_FILTER);
         }
 

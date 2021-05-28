@@ -98,12 +98,27 @@ public class CommandFilter {
             // whole type
             if (object.isType()) {
                 // annotation
+                String ownerName = Type.getType(object.getDescriptor()).getInternalName();
                 if (group.isAnnotation(object)) {
-                    String ownerName = Type.getType(object.getDescriptor()).getInternalName();
                     group.stream().filter(obj -> !obj.isType())
                             .filter(obj -> !related.contains(obj))
                             .filter(obj -> Objects.equals(ownerName, obj.getOwner()))
                             .forEach(stack::add);
+                }
+                // constructors
+                boolean constructorExists = false;
+                for (XObject obj : related) {
+                    if (obj.isFunction()
+                            && Objects.equals(obj.getOwner(), ownerName) &&
+                            Objects.equals(obj.getName(), "<init>") &&
+                            Objects.equals(obj.getDescriptor(), "()V")) {
+                        // exists
+                        constructorExists = true;
+                        break;
+                    }
+                }
+                if (!constructorExists) {
+                    stack.add(group.createFunction(ownerName, "<init>", "()V"));
                 }
             }
         }
@@ -115,6 +130,8 @@ public class CommandFilter {
                 commandFilter.allowFunction(obj);
             } else if (obj.isType()) {
                 commandFilter.allowType(obj);
+            } else if (obj.isState()) {
+                commandFilter.allowState(obj);
             }
         }
         return commandFilter;

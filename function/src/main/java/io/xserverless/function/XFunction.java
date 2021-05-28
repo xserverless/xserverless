@@ -1,11 +1,13 @@
 package io.xserverless.function;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -19,13 +21,13 @@ import io.xserverless.function.dto.XGroup;
 import io.xserverless.function.dto.XObject;
 
 public class XFunction {
-    public void analysis(InputStream jarInputStream, Function<XObject, OutputStream> outputStreamProvider, FunctionFilter functionFilter) throws IOException {
+    public void analysis(InputStream jarInputStream, Consumer<Map.Entry<XObject, byte[]>> consumer, FunctionFilter functionFilter) throws IOException {
         XGroup group = new FunctionConverter().readJar(jarInputStream);
 
-        analysis(outputStreamProvider, functionFilter, group);
+        analysis(consumer, functionFilter, group);
     }
 
-    public void analysis(Function<XObject, OutputStream> outputStreamProvider, FunctionFilter functionFilter, XGroup group) {
+    void analysis(Consumer<Map.Entry<XObject, byte[]>> consumer, FunctionFilter functionFilter, XGroup group) {
         List<CommandGroup<MethodCommand>> commandGroups = group.stream()
                 .filter(XObject::isFunction)
                 .flatMap(xObject -> {
@@ -46,22 +48,22 @@ public class XFunction {
             XObject main = group.createFunction(commandGroup.getOwner(), commandGroup.getName(), commandGroup.getDescriptor());
             CommandFilter commandFilter = CommandFilter.createFilter(group, main);
 
-            OutputStream outputStream = outputStreamProvider.apply(main);
-            if (outputStream != null) {
-                try (JarOutputStream jarOutputStream = new JarOutputStream(outputStream)) {
-                    for (CommandGroup.ClassCommandGroup classCommandCommandGroup : group.getClassMap().values()) {
-                        byte[] bytes = new ClassCommandWriter().write(classCommandCommandGroup, commandFilter);
-                        if (bytes.length > 0) {
-                            System.out.println(classCommandCommandGroup.getName());
-                            ZipEntry zipEntry = new ZipEntry(classCommandCommandGroup.getName() + ".class");
-                            jarOutputStream.putNextEntry(zipEntry);
-                            jarOutputStream.write(bytes);
-                        }
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            try (JarOutputStream jarOutputStream = new JarOutputStream(stream)) {
+                for (CommandGroup.ClassCommandGroup classCommandCommandGroup : group.getClassMap().values()) {
+                    byte[] bytes = new ClassCommandWriter().write(classCommandCommandGroup, commandFilter);
+                    if (bytes.length > 0) {
+                        System.out.println(classCommandCommandGroup.getName());
+                        ZipEntry zipEntry = new ZipEntry(classCommandCommandGroup.getName() + ".class");
+                        jarOutputStream.putNextEntry(zipEntry);
+                        jarOutputStream.write(bytes);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
+            consumer.accept(new AbstractMap.SimpleEntry<>(main, stream.toByteArray()));
         }
     }
 }

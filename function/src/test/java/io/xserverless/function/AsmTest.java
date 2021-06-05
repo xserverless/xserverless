@@ -106,13 +106,14 @@ public class AsmTest {
 
         List<File> files = new ArrayList<>();
         new XFunction().analysis(entry -> {
-            File file = new File(tempRoot, entry.getKey().getName() + "_" + files.size() + ".zip");
+            File file = new File(tempRoot, entry.getMethod().getName() + "_" + files.size() + ".zip");
             files.add(file);
             try {
-                FileUtils.writeByteArrayToFile(file, entry.getValue());
+                FileUtils.writeByteArrayToFile(file, entry.getFile());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            System.out.println("\t >>>\t " + entry.getUrlPattern());
         }, FunctionFilter.REQUEST_MAPPING_FILTER, group);
 
         unzipJars(files);
@@ -169,10 +170,10 @@ public class AsmTest {
 
         try (FileInputStream fis = new FileInputStream(jar)) {
             new XFunction().analysis(fis, entry -> {
-                File file = new File(tempRoot, entry.getKey().getName() + "_" + files.size() + ".zip");
+                File file = new File(tempRoot, entry.getMethod().getName() + "_" + files.size() + ".zip");
                 files.add(file);
                 try {
-                    FileUtils.writeByteArrayToFile(file, entry.getValue());
+                    FileUtils.writeByteArrayToFile(file, entry.getFile());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -12,3 +12,4 @@
 /fileserver/data/
 !/fileserver/data/.gitkeep
 /domains/target/
+/domains/domains.iml

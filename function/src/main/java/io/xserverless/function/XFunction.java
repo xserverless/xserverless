@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -67,13 +68,16 @@ public class XFunction {
                 e.printStackTrace();
             }
 
-            consumer.accept(new XEntry(main, stream.toByteArray(), getUrlPattern(main, group)));
+            List<String> httpMethods = new ArrayList<>();
+            String path = getUrlPattern(main, group, httpMethods);
+
+            consumer.accept(new XEntry(main, stream.toByteArray(), path, httpMethods));
 
             LoggerFactory.getLogger(getClass()).info("analysis entry ended: {}", main.getName());
         }
     }
 
-    private String getUrlPattern(XObject method, XGroup group) {
+    private String getUrlPattern(XObject method, XGroup group, Collection<String> httpMethods) {
         final CommandGroup.ClassCommandGroup classCommandGroup = group.getClassMap().get(method.getOwner());
 
         List<String> pattern = new ArrayList<>();
@@ -82,7 +86,7 @@ public class XFunction {
             if (command instanceof ClassCommand.Annotation) {
                 final ClassCommand.Annotation annotation = (ClassCommand.Annotation) command;
                 if (annotation.getDescriptor().equals("Lorg/springframework/web/bind/annotation/RequestMapping;")) {
-                    final String path = path(annotation.getAnnotation().getCommands());
+                    final String path = path(annotation.getAnnotation().getCommands(), httpMethods);
                     if (path != null) {
                         pattern.addAll(Arrays.asList(path.split("/")));
                         break;
@@ -95,13 +99,15 @@ public class XFunction {
         for (MethodCommand command : methodCommandGroup.getCommands()) {
             if (command instanceof MethodCommand.Annotation) {
                 MethodCommand.Annotation annotation = (MethodCommand.Annotation) command;
-                if (annotation.getDescriptor().equals("Lorg/springframework/web/bind/annotation/RequestMapping;")
-                        || annotation.getDescriptor().equals("Lorg/springframework/web/bind/annotation/GetMapping;")
-                        || annotation.getDescriptor().equals("Lorg/springframework/web/bind/annotation/PostMapping;")
-                        || annotation.getDescriptor().equals("Lorg/springframework/web/bind/annotation/DeleteMapping;")
-                        || annotation.getDescriptor().equals("Lorg/springframework/web/bind/annotation/PutMapping;")
-                ) {
-                    final String path = path(annotation.getAnnotation().getCommands());
+                final String descriptor = annotation.getDescriptor();
+                boolean isRequestMapping = descriptor.equals("Lorg/springframework/web/bind/annotation/RequestMapping;");
+                isRequestMapping |= descriptor.equals("Lorg/springframework/web/bind/annotation/GetMapping;") && httpMethods.add("GET");
+                isRequestMapping |= descriptor.equals("Lorg/springframework/web/bind/annotation/PostMapping;") && httpMethods.add("POST");
+                isRequestMapping |= descriptor.equals("Lorg/springframework/web/bind/annotation/DeleteMapping;") && httpMethods.add("DELETE");
+                isRequestMapping |= descriptor.equals("Lorg/springframework/web/bind/annotation/PutMapping;") && httpMethods.add("PUT");
+
+                if (isRequestMapping) {
+                    String path = path(annotation.getAnnotation().getCommands(), httpMethods);
                     if (path != null) {
                         pattern.addAll(Arrays.asList(path.split("/")));
                         break;
@@ -120,7 +126,8 @@ public class XFunction {
         return "/" + stringJoiner;
     }
 
-    private String path(List<AnnotationCommand> annotationCommands) {
+    private String path(List<AnnotationCommand> annotationCommands, Collection<String> httpMethods) {
+        String path = null;
         for (AnnotationCommand command : annotationCommands) {
             if (command instanceof AnnotationCommand.Array) {
                 AnnotationCommand.Array array = (AnnotationCommand.Array) command;
@@ -129,13 +136,23 @@ public class XFunction {
                         if (annotationCommand instanceof AnnotationCommand.Default) {
                             final AnnotationCommand.Default c = (AnnotationCommand.Default) annotationCommand;
                             if (c.getValue() != null) {
-                                return c.getValue().toString();
+                                path = c.getValue().toString();
+                                break;
+                            }
+                        }
+                    }
+                } else if (array.getName().equals("method")) {
+                    for (AnnotationCommand annotationCommand : array.getAnnotation().getCommands()) {
+                        if (annotationCommand instanceof AnnotationCommand.Default) {
+                            final AnnotationCommand.Default c = (AnnotationCommand.Default) annotationCommand;
+                            if (c.getValue() != null) {
+                                httpMethods.add(c.getValue().toString());
                             }
                         }
                     }
                 }
             }
         }
-        return null;
+        return path;
     }
 }

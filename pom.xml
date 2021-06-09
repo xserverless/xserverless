@@ -25,6 +25,7 @@
     <module>samples</module>
     <module>function</module>
     <module>runtime</module>
+      <module>domains</module>
   </modules>
 
   <dependencyManagement>

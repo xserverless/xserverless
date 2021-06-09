@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  rmqnamesrv:
+    image: foxiswho/rocketmq:server
+    container_name: rmqnamesrv
+    restart: on-failure
+    volumes:
+      - ./data/namesrv/logs:/opt/logs
+      - ./data/namesrv/store:/opt/store
+    ports:
+      - 9876:9876
+    networks:
+      mq_network:
+        ipv4_address: 172.200.2.2
+        aliases:
+          - rmqnamesrv
+    command:
+      - "sh"
+      - "mqnamesrv"
+
+  rmqbroker:
+    image: foxiswho/rocketmq:broker
+    container_name: rmqbroker
+    ports:
+      - 10909:10909
+      - 10911:10911
+    volumes:
+      - ./data/namesrv/logs:/opt/logs
+      - ./data/namesrv/store:/opt/store
+      - ./conf/broker.conf:/etc/rocketmq/broker.conf
+    environment:
+      NAMESRV_ADDR: "rmqnamesrv:9876"
+      JAVA_OPTS: " -Duser.home=/opt"
+      JAVA_OPT_EXT: "-server -Xms128m -Xmx128m -Xmn128m"
+    command: mqbroker -c /etc/rocketmq/broker.conf
+    depends_on:
+      - rmqnamesrv
+    networks:
+      mq_network:
+        ipv4_address: 172.200.2.3
+        aliases:
+          - rmqbroker
+
+  rmqconsole:
+    image: styletang/rocketmq-console-ng
+    container_name: rmqconsole
+    ports:
+      - 28080:8080
+    environment:
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    depends_on:
+      - rmqnamesrv
+    networks:
+      mq_network:
+        ipv4_address: 172.200.2.4
+        aliases:
+          - rmqconsole
+networks:
+  mq_network:
+    ipam:
+      config:
+        - subnet: 172.200.2.0/24
+          gateway: 172.200.2.1

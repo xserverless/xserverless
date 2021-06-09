@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    restart: on-failure
+    ports:
+      - 6379:6379
+    networks:
+      redis_network:
+        ipv4_address: 172.200.2.2
+        aliases:
+          - redis
+networks:
+  redis_network:
+    ipam:
+      config:
+        - subnet: 172.200.2.0/24
+          gateway: 172.200.2.1

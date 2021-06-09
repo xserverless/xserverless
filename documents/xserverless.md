@@ -36,16 +36,27 @@ subgraph 终端
 end
 
 subgraph 环境
-f1[Fass运行时]
-f2[Fass运行时]
-f3[Fass运行时]
+f1[Faas运行时]
+f2[Faas运行时]
+f3[Faas运行时]
+spi[服务接口定义]
+proxy[代理]
+
 end
 
 subgraph 云平台
 b[后端服务]
 end
 
-p -.-> f1 & f2 & f3 -.-> b
+subgraph 另一终端
+	s(服务提供者)
+end
+
+p -.->|调用| f1 & f2 & f3 -.->|调用| proxy -.->|调用| b
+p -.->|作为服务提供者注册特定服务| spi
+proxy -.->|寻址| spi
+s -.->|注册| spi
+
 ```
 ## 全部模块
 

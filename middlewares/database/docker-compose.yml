@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  mariadb:
+    image: mariadb:latest
+    restart: on-failure
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=Abc123++
+      - MYSQL_DATABASE=xserverless
+      - MYSQL_USER=xserverless
+      - MYSQL_PASSOWRD=Abc123++
+    ports:
+      - 3306:3306
+    networks:
+      db_network:
+        ipv4_address: 172.200.0.2
+
+networks:
+  db_network:
+    ipam:
+      config:
+        - subnet: 172.200.0.0/24
+          gateway: 172.200.0.1

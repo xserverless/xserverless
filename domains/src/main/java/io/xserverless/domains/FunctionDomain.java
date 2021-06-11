@@ -18,8 +18,8 @@ public class FunctionDomain {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "task_id")
-    private Long taskId;
+    @Column(name = "jar_id")
+    private Long jarId;
 
     // storage
     @Column(name = "path")

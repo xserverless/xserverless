@@ -10,9 +10,9 @@ import javax.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "tb_function_task")
+@Table(name = "tb_jar")
 @Data
-public class FunctionTaskDomain {
+public class JarDomain {
     public static final int INIT = 0;
     public static final int STARTED = 1;
     public static final int FINISHED = 2;

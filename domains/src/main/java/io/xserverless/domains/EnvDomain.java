@@ -22,6 +22,8 @@ public class EnvDomain {
     private String name;
     @Column(name = "description")
     private String description;
+    @Column(name = "domain")
+    private String domain;
 
     @Column(name = "db_schema")
     private String dbSchema;

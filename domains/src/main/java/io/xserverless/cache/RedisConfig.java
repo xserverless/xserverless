@@ -2,7 +2,7 @@ package io.xserverless.cache;
 
 import java.time.Duration;
 
-import io.xserverless.event.Event;
+import io.xserverless.event.EventList;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
@@ -39,12 +39,12 @@ public class RedisConfig extends CachingConfigurerSupport {
     }
 
     @Bean
-    public StreamMessageListenerContainer<String, ObjectRecord<String, Event>> streamContainer(RedisConnectionFactory redisConnectionFactory) {
-        final StreamMessageListenerContainer.StreamMessageListenerContainerOptions<String, ObjectRecord<String, Event>> options = StreamMessageListenerContainer
+    public StreamMessageListenerContainer<String, ObjectRecord<String, EventList>> streamContainer(RedisConnectionFactory redisConnectionFactory) {
+        final StreamMessageListenerContainer.StreamMessageListenerContainerOptions<String, ObjectRecord<String, EventList>> options = StreamMessageListenerContainer
                 .StreamMessageListenerContainerOptions
                 .builder()
                 .pollTimeout(Duration.ofSeconds(1))
-                .targetType(Event.class)
+                .targetType(EventList.class)
                 .build();
         return StreamMessageListenerContainer.create(redisConnectionFactory, options);
     }

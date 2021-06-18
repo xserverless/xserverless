@@ -6,4 +6,6 @@ public interface Const {
     String DEPLOY_CHANNEL_TYPE_FRONTPAGE = "front-page";
 
     String EVENT_STREAM = "event_stream";
+
+    String SERVER_HEART_BEAT = "server-heart-beat";
 }

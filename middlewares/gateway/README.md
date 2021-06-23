@@ -1,0 +1,1 @@
+ 曾经尝试用openresty构建网关，但是没成功（怀疑是我mac的问题，spring cloud gateway和OpenResty都有问题），暂时还是用java+nginx的方式实现吧。

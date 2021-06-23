@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  redis:
+    image: xserverless/gateway:0.0.1-SNAPSHOT
+    container_name: gateway
+    #    restart: on-failure
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx:/root/nginx
+      - ./log:/root/log
+    networks:
+      gateway_network:
+        ipv4_address: 172.200.3.2
+        aliases:
+          - gateway
+networks:
+  gateway_network:
+    ipam:
+      config:
+        - subnet: 172.200.3.0/24
+          gateway: 172.200.3.1

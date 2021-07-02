@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" viewBox="272 332 129 129" width="129" height="129">
+  <defs>
+    <font-face font-family="Cross" font-size="22" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="508" cap-height="700" ascent="1050.003" descent="-149.9939" font-weight="600">
+      <font-face-src>
+        <font-face-name name="Cross-SemiBoldCon"/>
+      </font-face-src>
+    </font-face>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.18.5\n2021-07-01 02:24:34 +0000</metadata>
+  <g id="Canvas_1" stroke-opacity="1" fill-opacity="1" stroke-dasharray="none" fill="none" stroke="none">
+    <title>Canvas 1</title>
+    <g id="Canvas_1_图层_3">
+      <title>图层 3</title>
+      <g id="Group_18">
+        <g id="Graphic_16">
+          <path d="M 323.5745 395.7129 L 374.10793 332 L 319.455 332 L 304.8432 372.09635 L 273.45544 332.52245 L 296.36002 395.3751 L 273 459.47755 L 305.0119 419.11675 L 319.91044 460 L 374.56337 460 Z"/>
+        </g>
+        <g id="Graphic_17">
+          <text transform="translate(316.77755 428.19184)" fill="#b1001c">
+            <tspan font-family="Cross" font-size="22" font-weight="600" fill="#b1001c" x="0" y="23">Serverless</tspan>
+          </text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

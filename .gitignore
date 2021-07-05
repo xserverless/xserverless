@@ -22,6 +22,7 @@
 /trail/compose/gateway/nginx/
 /trail/compose/mariadb/data/
 /trail/compose/runtime/functions/
+
 !/trail/compose/dev-center-web/www/.gitkeep
 !/trail/compose/fastdfs/data/storage/.gitkeep
 !/trail/compose/fastdfs/data/tracker/.gitkeep

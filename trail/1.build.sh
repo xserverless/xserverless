@@ -1,5 +1,7 @@
 #! /usr/bin/bash
 
+sudo echo hello
+
 cd ../../
 ROOT=`pwd`
 echo $ROOT

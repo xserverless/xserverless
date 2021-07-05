@@ -16,15 +16,15 @@
 /middlewares/gateway/.idea/
 
 *.jar
-/trail/compose/dev-center-web/www/
-/trail/compose/fastdfs/data/storage/
-/trail/compose/fastdfs/data/tracker/
-/trail/compose/gateway/nginx/
-/trail/compose/mariadb/data/
-/trail/compose/runtime/functions/
+# /trail/compose/dev-center-web/www/
+# /trail/compose/fastdfs/data/storage/
+# /trail/compose/fastdfs/data/tracker/
+# /trail/compose/gateway/nginx/
+# /trail/compose/mariadb/data/
+# /trail/compose/runtime/functions/
 
-!/trail/compose/dev-center-web/www/.gitkeep
-!/trail/compose/fastdfs/data/storage/.gitkeep
-!/trail/compose/fastdfs/data/tracker/.gitkeep
-!/trail/compose/gateway/nginx/.gitkeep
-!/trail/compose/mariadb/data/.gitkeep
+# !/trail/compose/dev-center-web/www/.gitkeep
+# !/trail/compose/fastdfs/data/storage/.gitkeep
+# !/trail/compose/fastdfs/data/tracker/.gitkeep
+# !/trail/compose/gateway/nginx/.gitkeep
+# !/trail/compose/mariadb/data/.gitkeep

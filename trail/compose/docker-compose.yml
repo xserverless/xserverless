@@ -75,8 +75,6 @@ services:
     image: redis
     container_name: redis
     restart: on-failure
-    ports:
-      - 6379:6379
     networks:
       xserverless_network:
         ipv4_address: 172.200.2.2
@@ -105,8 +103,6 @@ services:
   runtime:
     image: xserverless/runtime:0.0.1-SNAPSHOT
     container_name: runtime
-    ports:
-      - 28080:8080
     volumes:
       - ./runtime:/root/runtime
     entrypoint:
@@ -121,8 +117,6 @@ services:
   dev-center:
     image: xserverless/runtime:0.0.1-SNAPSHOT
     container_name: dev-center
-    ports:
-      - 18080:8080
     volumes:
       - ./dev-center:/root/runtime
     entrypoint:
@@ -150,7 +144,6 @@ services:
         ipv4_address: 172.200.3.5
         aliases:
           - dev-center-web
-
 
 networks:
   xserverless_network:

@@ -2,7 +2,7 @@ server:
   port: 0
 
 xserver:
-  domain: xserverless.net
+  domain: lmh.icu
   port: 80
 
 xfdfs:

@@ -16,7 +16,7 @@ services:
       - 3306:3306
     networks:
       xserverless_network:
-        ipv4_address: 172.200.0.2
+        # ipv4_address: 172.200.0.2
         aliases:
           - mariadb
 
@@ -102,16 +102,18 @@ services:
           - gateway
   runtime:
     image: xserverless/runtime:0.0.1-SNAPSHOT
-    container_name: runtime
+    # container_name: runtime
     volumes:
       - ./runtime:/root/runtime
     entrypoint:
       - /usr/bin/java
       - -jar
       - runtime-0.0.1-SNAPSHOT.jar
+    deploy:
+      replicas: 3
     networks:
       xserverless_network:
-        ipv4_address: 172.200.3.3
+        # ipv4_address: 172.200.3.3
         aliases:
           - runtime
   dev-center:

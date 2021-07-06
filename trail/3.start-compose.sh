@@ -3,4 +3,4 @@
 sudo echo hello
 
 cd compose
-sudo docker-compose up -d
+sudo docker-compose --compatibility up -d

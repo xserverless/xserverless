@@ -28,4 +28,5 @@
 !/trail/compose/fastdfs/data/storage/.gitkeep
 !/trail/compose/fastdfs/data/tracker/.gitkeep
 !/trail/compose/gateway/nginx/.gitkeep
+!/trail/compose/gateway/nginx/nginx.pid
 !/trail/compose/mariadb/data/.gitkeep
